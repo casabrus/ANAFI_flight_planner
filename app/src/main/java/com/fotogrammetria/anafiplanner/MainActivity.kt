@@ -49,6 +49,7 @@ import com.fotogrammetria.anafiplanner.planner.FlightWaypoint
 import com.fotogrammetria.anafiplanner.planner.FocusTarget
 import com.fotogrammetria.anafiplanner.planner.FocusTargetMode
 import com.fotogrammetria.anafiplanner.planner.FreeFlightPlanExporter
+import com.fotogrammetria.anafiplanner.planner.FreeFlightPlanValidator
 import com.fotogrammetria.anafiplanner.planner.GeoPoint
 import com.fotogrammetria.anafiplanner.planner.GridSurveyParameters
 import com.fotogrammetria.anafiplanner.planner.GridSurveyPlan
@@ -93,6 +94,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val cameraProfiles = CameraProfiles.all
     private val exporter = FreeFlightPlanExporter()
+    private val exportValidator = FreeFlightPlanValidator()
     private val terrainService: ElevationService by lazy {
         CopernicusDemElevationService(applicationContext)
     }
@@ -875,29 +877,31 @@ class MainActivity : AppCompatActivity() {
                     routeSamplePoints = routeSamplePoints,
                     routeSampleSpacingM = routeSampleSpacingM,
                 )
-                val terrainWarnings = buildTerrainWarnings(snapshot)
                 val adjustedMission = applyTerrainAdjustedMission(mission, takeoff, snapshot)
                     .copy(title = exportPlanTitle)
-                    .let { adjusted ->
-                        adjusted.copy(
-                            warning = mergeWarnings(adjusted.warning, terrainWarnings),
-                        )
-                    }
                 val adjustedExportWaypoints = buildTerrainAdjustedExportWaypoints(
                     mission = adjustedMission,
                     takeoff = takeoff,
                     snapshot = snapshot,
                     routeSamplePoints = routeSamplePoints,
                 )
+                val validation = exportValidator.validate(adjustedExportWaypoints)
+                if (!validation.isValid) {
+                    throw ExportValidationException(validation.errors.joinToString(separator = "\n"))
+                }
+                val exportWarnings = buildTerrainWarnings(snapshot) + validation.warnings
+                val missionWithWarnings = adjustedMission.copy(
+                    warning = mergeWarnings(adjustedMission.warning, exportWarnings),
+                )
                 val adjustedJson = exporter.exportPrepared(
-                    title = adjustedMission.title,
-                    polygon = adjustedMission.polygon,
+                    title = missionWithWarnings.title,
+                    polygon = missionWithWarnings.polygon,
                     waypoints = adjustedExportWaypoints,
                     takeoffPoint = takeoff,
                 )
                 PreparedExport(
                     snapshot = snapshot,
-                    mission = adjustedMission,
+                    mission = missionWithWarnings,
                     exportWaypoints = adjustedExportWaypoints,
                     jsonPayload = adjustedJson,
                 )
