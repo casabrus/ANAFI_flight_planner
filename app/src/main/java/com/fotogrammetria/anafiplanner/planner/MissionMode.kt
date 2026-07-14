@@ -5,5 +5,4 @@ enum class MissionMode(
 ) {
     GRID_NADIR("Grid Nadir"),
     CIRCLEGRAMMETRY("Circlegrammetry"),
-    HYBRID("Hybrid"),
 }

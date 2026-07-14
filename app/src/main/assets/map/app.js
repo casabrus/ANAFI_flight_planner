@@ -1,5 +1,5 @@
 (function () {
-  const defaultCenter = [45.5498, 11.5402];
+  const defaultCenter = [45.5350, 11.5455];
 
   const map = L.map("map", {
     zoomControl: true,
@@ -19,6 +19,33 @@
       attribution: "Tiles &copy; Esri"
     }
   );
+
+  const LocationControl = L.Control.extend({
+    options: {
+      position: "topleft"
+    },
+
+    onAdd: function () {
+      const container = L.DomUtil.create("div", "leaflet-bar leaflet-control leaflet-control-location");
+      const link = L.DomUtil.create("a", "leaflet-control-location-button", container);
+      link.href = "#";
+      link.title = "Center on GPS position";
+      link.setAttribute("aria-label", "Center on GPS position");
+      link.innerHTML = '<span class="location-crosshair" aria-hidden="true">&#8982;</span>';
+
+      L.DomEvent.disableClickPropagation(container);
+      L.DomEvent.on(link, "click", L.DomEvent.stop);
+      L.DomEvent.on(link, "click", function () {
+        if (window.AndroidBridge && window.AndroidBridge.requestUserLocation) {
+          window.AndroidBridge.requestUserLocation();
+        }
+      });
+
+      return container;
+    }
+  });
+
+  map.addControl(new LocationControl());
 
   const polygonLayer = L.layerGroup().addTo(map);
   const vertexLayer = L.layerGroup().addTo(map);

@@ -261,24 +261,17 @@
                         android:textSize="14sp"
                         app:backgroundTint="@color/toggle_button_background"
                         app:strokeColor="@color/planner_button_stroke" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/missionHybridButton"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:layout_width="0dp"
-                        android:layout_height="48dp"
-                        android:layout_weight="1"
-                        android:fontFamily="sans-serif-medium"
-                        android:minHeight="48dp"
-                        android:paddingTop="0dp"
-                        android:paddingBottom="0dp"
-                        android:text="@string/mission_mode_hybrid"
-                        android:textAllCaps="false"
-                        android:textColor="@color/toggle_button_text"
-                        android:textSize="14sp"
-                        app:backgroundTint="@color/toggle_button_background"
-                        app:strokeColor="@color/planner_button_stroke" />
                 </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                <TextView
+                    android:id="@+id/missionModeDescriptionText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:lineSpacingExtra="2dp"
+                    android:text="@string/mission_mode_grid_description"
+                    android:textColor="@color/planner_text"
+                    android:textSize="13sp" />
 
                 <TextView
                     android:layout_width="match_parent"
@@ -360,9 +353,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:background="@drawable/bg_info_panel"
                     android:orientation="vertical"
-                    android:padding="12dp">
+                    android:padding="0dp">
 
                     <TextView
                         android:id="@+id/altitudeValueText"
@@ -395,11 +387,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="18dp"
-                    android:background="@drawable/bg_info_panel"
-                    android:paddingLeft="14dp"
-                    android:paddingTop="10dp"
-                    android:paddingRight="14dp"
-                    android:paddingBottom="10dp"
                     android:text="@string/speed_auto_placeholder"
                     android:textColor="@color/planner_muted"
                     android:textSize="12sp" />
@@ -409,9 +396,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:background="@drawable/bg_info_panel"
                     android:orientation="vertical"
-                    android:padding="12dp">
+                    android:padding="0dp">
 
                     <TextView
                         android:id="@+id/speedValueText"
@@ -440,29 +426,11 @@
                 android:padding="0dp"
                 android:visibility="gone">
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:letterSpacing="0.12"
-                    android:text="@string/section_geometry"
-                    android:textAllCaps="true"
-                    android:textColor="@color/planner_primary"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="@string/grid_angle_helper"
-                    android:textColor="@color/planner_muted"
-                    android:textSize="12sp" />
-
                 <LinearLayout
                     android:id="@+id/gridInputsGroup"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
+                    android:layout_marginTop="0dp"
                     android:orientation="vertical">
 
                     <TextView
@@ -519,14 +487,6 @@
                             android:stepSize="1" />
                     </LinearLayout>
 
-                    <TextView
-                        android:id="@+id/gridAngleValueText"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:text="@string/grid_angle_label"
-                        android:textColor="@color/planner_text"
-                        android:textStyle="bold" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -917,14 +877,52 @@
                     android:textColor="@color/planner_muted"
                     android:textSize="12sp" />
 
-                <TextView
+                <Button
+                    android:id="@+id/resetExportFolderButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
-                    android:lineSpacingExtra="2dp"
-                    android:text="@string/more_legend"
-                    android:textColor="@color/planner_text"
-                    android:textSize="13sp" />
+                    android:background="@drawable/bg_primary_button"
+                    android:fontFamily="sans-serif-medium"
+                    android:minHeight="50dp"
+                    android:text="@string/reset_export_folder_button"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/white"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/terrainSampleSpacingBlock"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:orientation="vertical"
+                    android:padding="0dp">
+
+                    <TextView
+                        android:id="@+id/terrainSampleSpacingValueText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/terrain_check_spacing_label"
+                        android:textColor="@color/planner_text"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.slider.Slider
+                        android:id="@+id/terrainSampleSpacingSlider"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:valueFrom="10"
+                        android:valueTo="60"
+                        android:stepSize="10" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:lineSpacingExtra="2dp"
+                        android:text="@string/terrain_check_spacing_helper"
+                        android:textColor="@color/planner_muted"
+                        android:textSize="12sp" />
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/exportPathText"
@@ -941,20 +939,6 @@
                     android:textColor="@color/planner_muted"
                     android:textIsSelectable="true"
                     android:textSize="12sp" />
-
-                <Button
-                    android:id="@+id/resetExportFolderButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/bg_primary_button"
-                    android:fontFamily="sans-serif-medium"
-                    android:minHeight="50dp"
-                    android:text="@string/reset_export_folder_button"
-                    android:textAllCaps="false"
-                    android:textColor="@android:color/white"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="match_parent"
@@ -1039,6 +1023,11 @@
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/circleMaxExtensionInput"
+                    android:layout_width="1dp"
+                    android:layout_height="1dp" />
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/terrainSampleSpacingInput"
                     android:layout_width="1dp"
                     android:layout_height="1dp" />
             </LinearLayout>

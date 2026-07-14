@@ -12,12 +12,12 @@ class CopernicusDemElevationService(
     private val downloader: DemDownloader = DemDownloader(),
     private val reader: GeoTiffElevationReader = GeoTiffElevationReader(),
 ) : ElevationService {
-    private val elevationCache = ConcurrentHashMap<String, Double?>()
+    private val elevationCache = ConcurrentHashMap<String, ElevationSample>()
 
     override val sourceLabel: String = "Copernicus DEM tiles"
 
     @Throws(IOException::class)
-    override fun fetchElevation(lat: Double, lon: Double): Double? {
+    override fun fetchElevationSample(lat: Double, lon: Double): ElevationSample? {
         val cacheKey = cacheKey(lat, lon)
         elevationCache[cacheKey]?.let { return it }
 
@@ -28,8 +28,12 @@ class CopernicusDemElevationService(
                 val file = downloader.downloadIfMissing(tile, cache) ?: continue
                 val elevation = reader.readElevation(file, lat, lon)?.let { round(it * 10.0) / 10.0 }
                 if (elevation != null) {
-                    elevationCache[cacheKey] = elevation
-                    return elevation
+                    val sample = ElevationSample(
+                        elevationM = elevation,
+                        resolution = resolution,
+                    )
+                    elevationCache[cacheKey] = sample
+                    return sample
                 }
             } catch (error: IOException) {
                 val wrapped = IOException("${resolution.name}: ${error.message}", error)
@@ -43,7 +47,6 @@ class CopernicusDemElevationService(
             throw lastFailure as IOException
         }
 
-        elevationCache[cacheKey] = null
         return null
     }
 

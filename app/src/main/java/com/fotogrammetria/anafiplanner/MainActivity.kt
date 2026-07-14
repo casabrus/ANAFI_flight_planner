@@ -61,6 +61,8 @@ import com.fotogrammetria.anafiplanner.planner.TakeoffPoint
 import com.fotogrammetria.anafiplanner.planner.TerrainSampling
 import com.fotogrammetria.anafiplanner.planner.WaypointSegmentType
 import com.fotogrammetria.anafiplanner.terrain.CopernicusDemElevationService
+import com.fotogrammetria.anafiplanner.terrain.DemResolution
+import com.fotogrammetria.anafiplanner.terrain.ElevationSample
 import com.fotogrammetria.anafiplanner.terrain.ElevationService
 import java.util.Locale
 import java.util.concurrent.Executors
@@ -291,7 +293,6 @@ class MainActivity : AppCompatActivity() {
             inputFormatter = { value -> formatSliderDecimal(value, 0) },
         )
         binding.gridAngleInput.setText("20")
-        binding.gridAngleValueText.text = getString(R.string.grid_angle_display, 20)
         setupSpeedSlider()
         bindSlider(
             slider = binding.circleRadiusSlider,
@@ -356,6 +357,16 @@ class MainActivity : AppCompatActivity() {
             initialValue = 30.0,
             displayFormatter = { value ->
                 getString(R.string.circle_max_extension_display, formatSliderDecimal(value, 0))
+            },
+            inputFormatter = { value -> formatSliderDecimal(value, 0) },
+        )
+        bindSlider(
+            slider = binding.terrainSampleSpacingSlider,
+            labelView = binding.terrainSampleSpacingValueText,
+            input = binding.terrainSampleSpacingInput,
+            initialValue = DEFAULT_TERRAIN_SAMPLE_SPACING_M,
+            displayFormatter = { value ->
+                getString(R.string.terrain_check_spacing_display, formatSliderDecimal(value, 0))
             },
             inputFormatter = { value -> formatSliderDecimal(value, 0) },
         )
@@ -831,7 +842,12 @@ class MainActivity : AppCompatActivity() {
         val requestId = terrainRequestSequence.incrementAndGet()
         val polygon = currentPolygon.toList()
         val exportPlanTitle = selectedPlanTitle(selectedCameraProfile())
-        val routeSamplePoints = buildRouteSamplePoints(mission, takeoff)
+        val routeSampleSpacingM = selectedTerrainSampleSpacingM()
+        val routeSamplePoints = buildRouteSamplePoints(
+            mission = mission,
+            takeoffPoint = takeoff,
+            sampleSpacingM = routeSampleSpacingM,
+        )
         terrainLoading = true
         terrainErrorMessage = null
         terrainSnapshot = TerrainSnapshot.empty()
@@ -857,10 +873,16 @@ class MainActivity : AppCompatActivity() {
                     takeoff = takeoff,
                     waypoints = mission.waypoints,
                     routeSamplePoints = routeSamplePoints,
+                    routeSampleSpacingM = routeSampleSpacingM,
                 )
-                val adjustedMission = applyTerrainAdjustedMission(mission, takeoff, snapshot).copy(
-                    title = exportPlanTitle,
-                )
+                val terrainWarnings = buildTerrainWarnings(snapshot)
+                val adjustedMission = applyTerrainAdjustedMission(mission, takeoff, snapshot)
+                    .copy(title = exportPlanTitle)
+                    .let { adjusted ->
+                        adjusted.copy(
+                            warning = mergeWarnings(adjusted.warning, terrainWarnings),
+                        )
+                    }
                 val adjustedExportWaypoints = buildTerrainAdjustedExportWaypoints(
                     mission = adjustedMission,
                     takeoff = takeoff,
@@ -1013,7 +1035,15 @@ class MainActivity : AppCompatActivity() {
         val missionMode = selectedMissionMode()
         binding.gridInputsGroup.isVisible = missionMode != MissionMode.CIRCLEGRAMMETRY
         binding.circleInputsGroup.isVisible = missionMode != MissionMode.GRID_NADIR
+        binding.missionModeDescriptionText.setText(missionModeDescriptionRes(missionMode))
         updateCircleUiState()
+    }
+
+    private fun missionModeDescriptionRes(missionMode: MissionMode): Int {
+        return when (missionMode) {
+            MissionMode.GRID_NADIR -> R.string.mission_mode_grid_description
+            MissionMode.CIRCLEGRAMMETRY -> R.string.mission_mode_circle_description
+        }
     }
 
     private fun updateCircleUiState() {
@@ -1163,7 +1193,6 @@ class MainActivity : AppCompatActivity() {
         return when (request.missionMode) {
             MissionMode.GRID_NADIR -> createGridMission(request)
             MissionMode.CIRCLEGRAMMETRY -> createCircleMission(request)
-            MissionMode.HYBRID -> createHybridMission(request)
         }
     }
 
@@ -1289,57 +1318,6 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun createHybridMission(request: PlanningRequest): PlannedMission {
-        val gridMission = createGridMission(request.copy(missionMode = MissionMode.GRID_NADIR))
-        val circleMission = createCircleMission(request.copy(missionMode = MissionMode.CIRCLEGRAMMETRY))
-        val hybridWaypoints = gridMission.waypoints + circleMission.waypoints
-        val totalDistanceM = computeRouteDistance(hybridWaypoints)
-        val totalDurationSec = computeRouteDuration(hybridWaypoints)
-        val warnings = listOfNotNull(gridMission.warning, circleMission.warning)
-            .flatMap { it.split('\n') }
-            .distinct()
-            .joinToString(separator = "\n")
-            .let { if (it.isBlank()) null else it }
-
-        val summary = buildString {
-            appendLine("mission: Hybrid")
-            appendLine("grid photos: ${gridMission.estimatedPhotoCount}")
-            appendLine("circle photos: ${circleMission.estimatedPhotoCount}")
-            appendLine("total photos: ${gridMission.estimatedPhotoCount + circleMission.estimatedPhotoCount}")
-            appendLine("total waypoints: ${hybridWaypoints.size}")
-            appendLine("distance: ${formatMeters(totalDistanceM)}")
-            appendLine("duration: ${formatDuration(totalDurationSec)}")
-            appendLine(
-                "takeoff: ${request.takeoffPoint?.let { formatLatLon(GeoPoint(it.lat, it.lon)) } ?: "not set"}",
-            )
-            append(
-                if (request.takeoffPoint != null) {
-                    getString(R.string.export_takeoff_yes)
-                } else {
-                    getString(R.string.export_takeoff_no)
-                },
-            )
-        }
-
-        return PlannedMission(
-            title = resolvePlanTitle(request.missionMode, request.cameraProfile, request.planTitleDraft),
-            polygon = request.polygon,
-            waypoints = hybridWaypoints,
-            summary = summary,
-            warning = warnings,
-            estimatedDistanceM = totalDistanceM,
-            estimatedDurationSec = totalDurationSec,
-            estimatedPhotoCount = gridMission.estimatedPhotoCount + circleMission.estimatedPhotoCount,
-            baseAltitudeM = gridMission.baseAltitudeM,
-            maxSupportedSpeedMps = minOf(gridMission.maxSupportedSpeedMps, circleMission.maxSupportedSpeedMps),
-            selectedSpeedMps = minOf(gridMission.selectedSpeedMps, circleMission.selectedSpeedMps),
-            selectedCapturePeriodSec = maxOf(
-                gridMission.selectedCapturePeriodSec,
-                circleMission.selectedCapturePeriodSec,
-            ),
-        )
-    }
-
     private fun buildGridSummary(
         plan: GridSurveyPlan,
         takeoffPoint: TakeoffPoint?,
@@ -1382,7 +1360,7 @@ class MainActivity : AppCompatActivity() {
     ): String {
         val selectedOverlap = plan.layout.optimization?.overlap ?: plan.parameters.requestedOverlap
         return buildString {
-            appendLine("mission: Assisted Circlegrammetry")
+            appendLine("mission: Circlegrammetry")
             appendLine("camera: ${plan.parameters.cameraProfile.label}")
             appendLine("photo mode: ${plan.parameters.photoMode.label}")
             appendLine("altitude: ${formatAltitudeMeters(plan.parameters.altitudeM)}")
@@ -1417,6 +1395,7 @@ class MainActivity : AppCompatActivity() {
     private fun buildRouteSamplePoints(
         mission: PlannedMission,
         takeoffPoint: TakeoffPoint?,
+        sampleSpacingM: Double,
         waypoints: List<FlightWaypoint> = mission.waypoints,
     ): List<RouteSamplePoint> {
         return TerrainSampling.sampleRouteSegmentsBySpacing(
@@ -1425,7 +1404,18 @@ class MainActivity : AppCompatActivity() {
                 takeoffPoint,
                 mission.baseAltitudeM,
             ),
-            ROUTE_TERRAIN_SAMPLE_SPACING_M,
+            sampleSpacingM,
+        )
+    }
+
+    private fun selectedTerrainSampleSpacingM(): Double {
+        val spacing = parseOptionalDouble(
+            binding.terrainSampleSpacingInput.text?.toString(),
+            "Terrain check spacing",
+        ) ?: DEFAULT_TERRAIN_SAMPLE_SPACING_M
+        return spacing.coerceIn(
+            MIN_TERRAIN_SAMPLE_SPACING_M,
+            MAX_TERRAIN_SAMPLE_SPACING_M,
         )
     }
 
@@ -1434,18 +1424,31 @@ class MainActivity : AppCompatActivity() {
         takeoff: TakeoffPoint?,
         waypoints: List<FlightWaypoint>,
         routeSamplePoints: List<RouteSamplePoint>,
+        routeSampleSpacingM: Double,
     ): TerrainSnapshot {
-        val polygonElevations = polygon.map(::fetchElevationSafely)
-        val takeoffElevationM = takeoff?.let { fetchElevationSafely(GeoPoint(it.lat, it.lon)) }
-        val waypointElevations = waypoints.map { waypoint ->
-            fetchElevationSafely(GeoPoint(waypoint.latitude, waypoint.longitude))
+        val polygonSamples = polygon.map(::fetchElevationSampleSafely)
+        val takeoffSample = takeoff?.let { fetchElevationSampleSafely(GeoPoint(it.lat, it.lon)) }
+        val waypointSamples = waypoints.map { waypoint ->
+            fetchElevationSampleSafely(GeoPoint(waypoint.latitude, waypoint.longitude))
         }
-        val routeSampleElevations = routeSamplePoints.map { fetchElevationSafely(it.point) }
+        val routeSamples = routeSamplePoints.map { fetchElevationSampleSafely(it.point) }
+        val polygonElevations = polygonSamples.map { it?.elevationM }
+        val takeoffElevationM = takeoffSample?.elevationM
+        val waypointElevations = waypointSamples.map { it?.elevationM }
+        val routeSampleElevations = routeSamples.map { it?.elevationM }
         val routeSummary = if (routeSamplePoints.isEmpty()) {
             null
         } else {
             TerrainSampling.summarizeElevations(routeSampleElevations)
         }
+        val usedDemResolutions = (
+            polygonSamples +
+                listOfNotNull(takeoffSample) +
+                waypointSamples +
+                routeSamples
+            )
+            .mapNotNull { it?.resolution }
+            .toSet()
 
         return TerrainSnapshot(
             polygonElevations = polygonElevations,
@@ -1453,6 +1456,8 @@ class MainActivity : AppCompatActivity() {
             waypointElevations = waypointElevations,
             routeSampleElevations = routeSampleElevations,
             routeSummary = routeSummary,
+            usedDemResolutions = usedDemResolutions,
+            routeSampleSpacingM = routeSampleSpacingM,
         )
     }
 
@@ -1599,9 +1604,22 @@ class MainActivity : AppCompatActivity() {
         return if (distinct.isEmpty()) null else distinct.joinToString(separator = "\n")
     }
 
-    private fun fetchElevationSafely(point: GeoPoint): Double? {
+    private fun buildTerrainWarnings(snapshot: TerrainSnapshot): List<String> {
+        return buildList {
+            if (snapshot.usesGlo90()) {
+                add(
+                    getString(
+                        R.string.terrain_warning_glo90,
+                        formatSliderDecimal(snapshot.routeSampleSpacingM.toFloat(), 0),
+                    ),
+                )
+            }
+        }
+    }
+
+    private fun fetchElevationSampleSafely(point: GeoPoint): ElevationSample? {
         return runCatching {
-            terrainService.fetchElevation(point.lat, point.lon)
+            terrainService.fetchElevationSample(point.lat, point.lon)
         }.getOrNull()
     }
 
@@ -1830,7 +1848,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     @SuppressLint("MissingPermission")
-    private fun startLocationTracking() {
+    private fun startLocationTracking(
+        forceRestart: Boolean = false,
+        focusLastKnown: Boolean = false,
+    ) {
         if (!mapReady) {
             return
         }
@@ -1844,7 +1865,10 @@ class MainActivity : AppCompatActivity() {
             return
         }
         if (isLocationTrackingActive) {
-            return
+            if (!forceRestart) {
+                return
+            }
+            stopLocationTracking()
         }
 
         val locationManager = getSystemService(LocationManager::class.java)
@@ -1868,10 +1892,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        val shouldFocusLocation = focusLastKnown || !userLocationCentered
         if (providers.isEmpty()) {
             findBestLastKnownLocation(locationManager)?.let {
-                showUserLocationOnMap(it, focus = !userLocationCentered)
-                userLocationCentered = true
+                showUserLocationOnMap(it, focus = shouldFocusLocation)
+                if (shouldFocusLocation) {
+                    userLocationCentered = true
+                }
             }
                 ?: Toast.makeText(this, R.string.location_provider_unavailable, Toast.LENGTH_SHORT).show()
             return
@@ -1890,8 +1917,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         findBestLastKnownLocation(locationManager)?.let {
-            showUserLocationOnMap(it, focus = !userLocationCentered)
-            userLocationCentered = true
+            showUserLocationOnMap(it, focus = shouldFocusLocation)
+            if (shouldFocusLocation) {
+                userLocationCentered = true
+            }
         }
         isLocationTrackingActive = true
     }
@@ -1900,11 +1929,20 @@ class MainActivity : AppCompatActivity() {
         if (!isLocationTrackingActive) {
             return
         }
-        val locationManager = getSystemService(LocationManager::class.java) ?: return
+        val locationManager = getSystemService(LocationManager::class.java)
+        if (locationManager == null) {
+            isLocationTrackingActive = false
+            return
+        }
         runCatching {
             locationManager.removeUpdates(locationListener)
         }
         isLocationTrackingActive = false
+    }
+
+    private fun refreshUserLocationFromMapControl() {
+        userLocationCentered = false
+        startLocationTracking(forceRestart = true, focusLastKnown = true)
     }
 
     private fun setMapMode(mode: String) {
@@ -1988,7 +2026,7 @@ class MainActivity : AppCompatActivity() {
             JSONObject().apply {
                 val center = polygon.firstOrNull()
                     ?: takeoff?.let { GeoPoint(it.lat, it.lon) }
-                    ?: GeoPoint(45.0703, 7.6869)
+                    ?: GeoPoint(DEFAULT_MAP_CENTER_LAT, DEFAULT_MAP_CENTER_LON)
                 put("lat", center.lat)
                 put("lon", center.lon)
             },
@@ -2191,7 +2229,6 @@ class MainActivity : AppCompatActivity() {
     private fun selectedMissionMode(): MissionMode {
         return when (binding.missionModeGroup.checkedButtonId) {
             R.id.missionCircleButton -> MissionMode.CIRCLEGRAMMETRY
-            R.id.missionHybridButton -> MissionMode.HYBRID
             else -> MissionMode.GRID_NADIR
         }
     }
@@ -2241,7 +2278,6 @@ class MainActivity : AppCompatActivity() {
         return when (missionMode) {
             MissionMode.GRID_NADIR -> "Grid ${cameraProfile.label}"
             MissionMode.CIRCLEGRAMMETRY -> "Circle ${cameraProfile.label}"
-            MissionMode.HYBRID -> "Hybrid ${cameraProfile.label}"
         }
     }
 
@@ -2352,25 +2388,6 @@ class MainActivity : AppCompatActivity() {
         return percent / 100.0
     }
 
-    private fun computeRouteDistance(waypoints: List<FlightWaypoint>): Double {
-        return waypoints.zipWithNext().sumOf { (start, end) ->
-            distanceMeters(
-                GeoPoint(start.latitude, start.longitude),
-                GeoPoint(end.latitude, end.longitude),
-            )
-        }
-    }
-
-    private fun computeRouteDuration(waypoints: List<FlightWaypoint>): Double {
-        return waypoints.zipWithNext().sumOf { (start, end) ->
-            val distanceM = distanceMeters(
-                GeoPoint(start.latitude, start.longitude),
-                GeoPoint(end.latitude, end.longitude),
-            )
-            distanceM / start.speedMps.coerceAtLeast(0.1)
-        }
-    }
-
     private fun distanceMeters(start: GeoPoint, end: GeoPoint): Double {
         val projection = com.fotogrammetria.anafiplanner.planner.GeoProjection(start)
         val a = projection.toLocalMeters(start)
@@ -2477,7 +2494,7 @@ class MainActivity : AppCompatActivity() {
         @JavascriptInterface
         fun requestUserLocation() {
             runOnUiThread {
-                startLocationTracking()
+                refreshUserLocationFromMapControl()
             }
         }
 
@@ -2489,7 +2506,6 @@ class MainActivity : AppCompatActivity() {
                     return@runOnUiThread
                 }
                 binding.gridAngleInput.setText(normalizedAngle.toString())
-                binding.gridAngleValueText.text = getString(R.string.grid_angle_display, normalizedAngle)
                 maybeGeneratePlan()
             }
         }
@@ -2622,13 +2638,20 @@ class MainActivity : AppCompatActivity() {
         val waypointElevations: List<Double?>,
         val routeSampleElevations: List<Double?>,
         val routeSummary: ElevationSummary?,
+        val usedDemResolutions: Set<DemResolution>,
+        val routeSampleSpacingM: Double,
     ) {
         fun isEmpty(): Boolean {
             return polygonElevations.isEmpty() &&
                 takeoffElevationM == null &&
                 waypointElevations.isEmpty() &&
                 routeSampleElevations.isEmpty() &&
-                routeSummary == null
+                routeSummary == null &&
+                usedDemResolutions.isEmpty()
+        }
+
+        fun usesGlo90(): Boolean {
+            return DemResolution.GLO90 in usedDemResolutions
         }
 
         companion object {
@@ -2639,6 +2662,8 @@ class MainActivity : AppCompatActivity() {
                     waypointElevations = emptyList(),
                     routeSampleElevations = emptyList(),
                     routeSummary = null,
+                    usedDemResolutions = emptySet(),
+                    routeSampleSpacingM = DEFAULT_TERRAIN_SAMPLE_SPACING_M,
                 )
             }
         }
@@ -2693,10 +2718,14 @@ class MainActivity : AppCompatActivity() {
     private class ExportValidationException(message: String) : IllegalStateException(message)
 
     private companion object {
+        private const val DEFAULT_MAP_CENTER_LAT = 45.5350
+        private const val DEFAULT_MAP_CENTER_LON = 11.5455
         private const val JSON_PREVIEW_MAX_CHARS = 24000
         private const val PLAN_REGEN_DEBOUNCE_MS = 220L
         private const val MAP_PREVIEW_MAX_WAYPOINTS = 1200
-        private const val ROUTE_TERRAIN_SAMPLE_SPACING_M = 10.0
+        private const val DEFAULT_TERRAIN_SAMPLE_SPACING_M = 10.0
+        private const val MIN_TERRAIN_SAMPLE_SPACING_M = 10.0
+        private const val MAX_TERRAIN_SAMPLE_SPACING_M = 60.0
         private const val MIN_TERRAIN_ADJUSTED_ALTITUDE_M = 3.0
         private const val LOCATION_UPDATE_MIN_TIME_MS = 1500L
         private const val LOCATION_UPDATE_MIN_DISTANCE_M = 1f

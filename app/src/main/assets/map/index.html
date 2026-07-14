@@ -121,6 +121,44 @@
       cursor: grabbing;
     }
 
+    .leaflet-top .leaflet-control-location {
+      margin-top: 0;
+    }
+
+    .leaflet-control-zoom a:last-child {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    .leaflet-control-location {
+      border-top: 0;
+      border-radius: 0 0 4px 4px;
+      overflow: hidden;
+    }
+
+    .leaflet-control-location-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      color: #114b9b;
+      font: 700 20px/1 sans-serif;
+      text-decoration: none;
+      background: #fff;
+    }
+
+    .leaflet-control-location-button:hover,
+    .leaflet-control-location-button:focus {
+      background: #f4f8fb;
+      color: #0b3978;
+      text-decoration: none;
+    }
+
+    .location-crosshair {
+      transform: translateY(-1px);
+    }
+
     .leaflet-bottom.leaflet-right {
       right: auto;
       left: 8px;
