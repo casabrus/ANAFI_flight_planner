@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="planner_primary">#223946</color>
+    <color name="planner_primary_dark">#182A34</color>
+    <color name="planner_secondary">#B8691B</color>
+    <color name="planner_secondary_dark">#8C4E10</color>
+    <color name="planner_on_primary">#FFFFFFFF</color>
+    <color name="planner_on_secondary">#FFFFFFFF</color>
+    <color name="planner_background">#F5F7F9</color>
+    <color name="planner_surface">#EEF1F4</color>
+    <color name="planner_text">#16232B</color>
+    <color name="planner_warning">#8A3B12</color>
+    <color name="planner_json_background">#EDF1F4</color>
+    <color name="planner_overlay_scrim">#E8EFF3F6</color>
+    <color name="planner_panel_surface">#FAFFFFFF</color>
+    <color name="planner_fab_tint">#C8FFFFFF</color>
+    <color name="planner_panel_stroke">#2A253645</color>
+    <color name="planner_muted">#7A4E616D</color>
+    <color name="planner_button_fill">#FFF9FBFC</color>
+    <color name="planner_button_stroke">#47223946</color>
+    <color name="planner_toggle_checked_bg">#223946</color>
+    <color name="planner_toggle_unchecked_bg">#E9EEF2</color>
+    <color name="planner_toggle_checked_text">#FFFFFF</color>
+    <color name="planner_toggle_unchecked_text">#223946</color>
+    <color name="planner_switch_thumb">#223946</color>
+    <color name="planner_switch_track">#7A223946</color>
+</resources>

@@ -1,0 +1,1010 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootContainer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/planner_background"
+    tools:context=".MainActivity">
+
+    <WebView
+        android:id="@+id/mapWebView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/planner_json_background" />
+
+    <LinearLayout
+        android:id="@+id/mapControlsGroup"
+        android:layout_width="56dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="20dp"
+        android:orientation="vertical"
+        android:padding="0dp">
+
+        <ImageButton
+            android:id="@+id/savePlanButton"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:background="@drawable/bg_floating_glass"
+            android:contentDescription="@string/map_save_plan"
+            android:elevation="14dp"
+            android:padding="12dp"
+            android:src="@drawable/ic_save_plan"
+            android:tint="@color/planner_primary" />
+
+        <ImageButton
+            android:id="@+id/setTakeoffButton"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_floating_glass"
+            android:contentDescription="@string/map_set_takeoff"
+            android:elevation="14dp"
+            android:padding="12dp"
+            android:src="@drawable/ic_takeoff_drone"
+            android:tint="@color/planner_primary" />
+
+        <ImageButton
+            android:id="@+id/resetPolygonMapButton"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_floating_glass"
+            android:contentDescription="@string/map_clear_polygon"
+            android:elevation="14dp"
+            android:padding="12dp"
+            android:src="@drawable/ic_reset_area"
+            android:tint="@color/planner_primary" />
+
+        <ImageButton
+            android:id="@+id/mapSourceButton"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_floating_glass"
+            android:contentDescription="@string/map_source_sat"
+            android:elevation="14dp"
+            android:padding="12dp"
+            android:src="@drawable/ic_map_satellite"
+            android:tint="@color/planner_primary" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/mapStatusLine"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="18dp"
+        android:background="@drawable/bg_status_chip"
+        android:ellipsize="end"
+        android:fontFamily="monospace"
+        android:maxLines="1"
+        android:paddingLeft="14dp"
+        android:paddingTop="8dp"
+        android:paddingRight="14dp"
+        android:paddingBottom="8dp"
+        android:shadowColor="#CC000000"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="3"
+        android:textAlignment="center"
+        android:text="@string/summary_placeholder"
+        android:textColor="@android:color/white"
+        android:textSize="12sp" />
+
+    <ImageButton
+        android:id="@+id/menuButton"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="18dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/bg_floating_glass"
+        android:contentDescription="@string/menu_controls"
+        android:elevation="14dp"
+        android:padding="14dp"
+        android:src="@drawable/ic_menu_planner"
+        android:tint="@color/planner_primary" />
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/controlsOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/planner_overlay_scrim"
+        android:fillViewport="true"
+        android:paddingLeft="14dp"
+        android:paddingTop="12dp"
+        android:paddingRight="14dp"
+        android:paddingBottom="18dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/bg_menu_panel"
+            android:orientation="vertical"
+            android:padding="22dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/menu_controls"
+                    android:textColor="@color/planner_text"
+                    android:textSize="26sp"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/closeMenuButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_overlay_button"
+                    android:minHeight="0dp"
+                    android:paddingLeft="16dp"
+                    android:paddingTop="10dp"
+                    android:paddingRight="16dp"
+                    android:paddingBottom="10dp"
+                    android:text="@string/close_button"
+                    android:textAllCaps="false"
+                    android:textColor="@color/planner_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/controls_subtitle"
+                android:textColor="@color/planner_muted"
+                android:textSize="14sp" />
+
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/menuTabs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/bg_tab_shell"
+                android:padding="6dp"
+                app:tabIndicator="@drawable/bg_tab_indicator"
+                app:tabIndicatorFullWidth="true"
+                app:tabMode="fixed"
+                app:tabSelectedTextColor="@android:color/white"
+                app:tabTextColor="@color/planner_primary" />
+
+            <LinearLayout
+                android:id="@+id/setupTabContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/bg_section_card"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/section_mission"
+                    android:textColor="@color/planner_primary"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="@string/mission_mode_label"
+                    android:textColor="@color/planner_text" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/mission_mode_helper"
+                    android:textColor="@color/planner_muted"
+                    android:textSize="12sp" />
+
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/missionModeGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    app:selectionRequired="true"
+                    app:singleSelection="true">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/missionGridButton"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="sans-serif-medium"
+                        android:minHeight="68dp"
+                        android:text="@string/mission_mode_grid"
+                        android:textAllCaps="false"
+                        android:textColor="@color/toggle_button_text"
+                        android:textSize="15sp"
+                        app:backgroundTint="@color/toggle_button_background"
+                        app:strokeColor="@color/planner_button_stroke" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/missionCircleButton"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="sans-serif-medium"
+                        android:minHeight="68dp"
+                        android:text="@string/mission_mode_circle"
+                        android:textAllCaps="false"
+                        android:textColor="@color/toggle_button_text"
+                        android:textSize="15sp"
+                        app:backgroundTint="@color/toggle_button_background"
+                        app:strokeColor="@color/planner_button_stroke" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/missionHybridButton"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="sans-serif-medium"
+                        android:minHeight="68dp"
+                        android:text="@string/mission_mode_hybrid"
+                        android:textAllCaps="false"
+                        android:textColor="@color/toggle_button_text"
+                        android:textSize="15sp"
+                        app:backgroundTint="@color/toggle_button_background"
+                        app:strokeColor="@color/planner_button_stroke" />
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:text="@string/camera_label"
+                    android:textColor="@color/planner_text" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/camera_helper"
+                    android:textColor="@color/planner_muted"
+                    android:textSize="12sp" />
+
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/cameraProfileGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    app:selectionRequired="true"
+                    app:singleSelection="true">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/cameraRawButton"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="sans-serif-medium"
+                        android:minHeight="62dp"
+                        android:text="@string/camera_profile_raw"
+                        android:textAllCaps="false"
+                        android:textColor="@color/toggle_button_text"
+                        android:textSize="15sp"
+                        app:backgroundTint="@color/toggle_button_background"
+                        app:strokeColor="@color/planner_button_stroke" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/cameraWideJpgButton"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="sans-serif-medium"
+                        android:minHeight="62dp"
+                        android:text="@string/camera_profile_wide_jpg"
+                        android:textAllCaps="false"
+                        android:textColor="@color/toggle_button_text"
+                        android:textSize="15sp"
+                        app:backgroundTint="@color/toggle_button_background"
+                        app:strokeColor="@color/planner_button_stroke" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/cameraJpgButton"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="sans-serif-medium"
+                        android:minHeight="62dp"
+                        android:text="@string/camera_profile_jpg"
+                        android:textAllCaps="false"
+                        android:textColor="@color/toggle_button_text"
+                        android:textSize="15sp"
+                        app:backgroundTint="@color/toggle_button_background"
+                        app:strokeColor="@color/planner_button_stroke" />
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                <LinearLayout
+                    android:id="@+id/altitudeSliderBlock"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:background="@drawable/bg_info_panel"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <TextView
+                        android:id="@+id/altitudeValueText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/gsd_label"
+                        android:textColor="@color/planner_text"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.slider.Slider
+                        android:id="@+id/altitudeSlider"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:valueFrom="0.8"
+                        android:valueTo="5.0"
+                        android:stepSize="0.1" />
+
+                    <TextView
+                        android:id="@+id/gsdHelperText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/gsd_helper"
+                        android:textColor="@color/planner_muted"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/speedAutoText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:background="@drawable/bg_info_panel"
+                    android:paddingLeft="14dp"
+                    android:paddingTop="12dp"
+                    android:paddingRight="14dp"
+                    android:paddingBottom="12dp"
+                    android:text="@string/speed_auto_placeholder"
+                    android:textColor="@color/planner_muted"
+                    android:textSize="12sp" />
+
+                <LinearLayout
+                    android:id="@+id/speedSliderBlock"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_info_panel"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <TextView
+                        android:id="@+id/speedValueText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/speed_label"
+                        android:textColor="@color/planner_text"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.slider.Slider
+                        android:id="@+id/speedSlider"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:valueFrom="1"
+                        android:valueTo="12"
+                        android:stepSize="0.5" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/geometryTabContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/bg_section_card"
+                android:orientation="vertical"
+                android:padding="18dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/section_geometry"
+                    android:textColor="@color/planner_primary"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/grid_angle_helper"
+                    android:textColor="@color/planner_muted"
+                    android:textSize="12sp" />
+
+                <LinearLayout
+                    android:id="@+id/gridInputsGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_info_panel"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/frontOverlapValueText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/front_overlap_label"
+                            android:textColor="@color/planner_text"
+                            android:textStyle="bold" />
+
+                        <com.google.android.material.slider.Slider
+                            android:id="@+id/frontOverlapSlider"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:valueFrom="50"
+                            android:valueTo="95"
+                            android:stepSize="1" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/sideOverlapValueText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/side_overlap_label"
+                            android:textColor="@color/planner_text"
+                            android:textStyle="bold" />
+
+                        <com.google.android.material.slider.Slider
+                            android:id="@+id/sideOverlapSlider"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:valueFrom="40"
+                            android:valueTo="90"
+                            android:stepSize="1" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/gridAngleValueText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/grid_angle_label"
+                        android:textColor="@color/planner_text"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/circleInputsGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_info_panel"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/circle_optimization_label"
+                        android:textColor="@color/planner_text" />
+
+                    <Spinner
+                        android:id="@+id/circleOptimizationSpinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:background="@drawable/bg_soft_input"
+                        android:popupBackground="@drawable/bg_spinner_popup"
+                        android:spinnerMode="dropdown" />
+
+                    <LinearLayout
+                        android:id="@+id/circleMaxExtensionBlock"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/circleMaxExtensionValueText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/circle_max_extension_label"
+                            android:textColor="@color/planner_text"
+                            android:textStyle="bold" />
+
+                        <com.google.android.material.slider.Slider
+                            android:id="@+id/circleMaxExtensionSlider"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:valueFrom="0"
+                            android:valueTo="80"
+                            android:stepSize="1" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/circle_focus_target_label"
+                        android:textColor="@color/planner_text" />
+
+                    <Spinner
+                        android:id="@+id/circleFocusTargetSpinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:background="@drawable/bg_soft_input"
+                        android:popupBackground="@drawable/bg_spinner_popup"
+                        android:spinnerMode="dropdown" />
+
+                    <LinearLayout
+                        android:id="@+id/circleFocusHeightBlock"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/circleFocusHeightValueText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/circle_focus_height_label"
+                            android:textColor="@color/planner_text"
+                            android:textStyle="bold" />
+
+                        <com.google.android.material.slider.Slider
+                            android:id="@+id/circleFocusHeightSlider"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:valueFrom="0"
+                            android:valueTo="20"
+                            android:stepSize="0.5" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="@string/circle_advanced_label"
+                        android:textColor="@color/planner_primary"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/circleLockRadiusSwitch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/circle_lock_radius"
+                        android:textColor="@color/planner_text"
+                        app:thumbTint="@color/planner_switch_thumb"
+                        app:trackTint="@color/planner_switch_track" />
+
+                    <LinearLayout
+                        android:id="@+id/circleRadiusBlock"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/circleRadiusValueText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/circle_radius_label"
+                            android:textColor="@color/planner_text"
+                            android:textStyle="bold" />
+
+                        <com.google.android.material.slider.Slider
+                            android:id="@+id/circleRadiusSlider"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:valueFrom="10"
+                            android:valueTo="120"
+                            android:stepSize="1" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/circleLockAngleSwitch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/circle_lock_angle"
+                        android:textColor="@color/planner_text"
+                        app:thumbTint="@color/planner_switch_thumb"
+                        app:trackTint="@color/planner_switch_track" />
+
+                    <LinearLayout
+                        android:id="@+id/circleTiltBlock"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/circleTiltValueText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/circle_tilt_label"
+                            android:textColor="@color/planner_text"
+                            android:textStyle="bold" />
+
+                        <com.google.android.material.slider.Slider
+                            android:id="@+id/circleTiltSlider"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:valueFrom="20"
+                            android:valueTo="85"
+                            android:stepSize="1" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/circleManualOverlapSwitch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/circle_manual_overlap"
+                        android:textColor="@color/planner_text"
+                        app:thumbTint="@color/planner_switch_thumb"
+                        app:trackTint="@color/planner_switch_track" />
+
+                    <LinearLayout
+                        android:id="@+id/circleOverlapBlock"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/circleOverlapValueText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/circle_overlap_label"
+                            android:textColor="@color/planner_text"
+                            android:textStyle="bold" />
+
+                        <com.google.android.material.slider.Slider
+                            android:id="@+id/circleOverlapSlider"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:valueFrom="25"
+                            android:valueTo="70"
+                            android:stepSize="1" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/circleManualPointsSwitch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/circle_manual_points"
+                        android:textColor="@color/planner_text"
+                        app:thumbTint="@color/planner_switch_thumb"
+                        app:trackTint="@color/planner_switch_track" />
+
+                    <LinearLayout
+                        android:id="@+id/circlePointsBlock"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/circlePointsValueText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/circle_points_label"
+                            android:textColor="@color/planner_text"
+                            android:textStyle="bold" />
+
+                        <com.google.android.material.slider.Slider
+                            android:id="@+id/circlePointsSlider"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:valueFrom="12"
+                            android:valueTo="96"
+                            android:stepSize="4" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/reviewTabContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/bg_section_card"
+                android:orientation="vertical"
+                android:padding="18dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/section_more_storage"
+                    android:textColor="@color/planner_primary"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/more_helper"
+                    android:textColor="@color/planner_muted"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:lineSpacingExtra="2dp"
+                    android:text="@string/more_legend"
+                    android:textColor="@color/planner_text"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/exportPathText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_info_panel"
+                    android:fontFamily="monospace"
+                    android:paddingLeft="14dp"
+                    android:paddingTop="12dp"
+                    android:paddingRight="14dp"
+                    android:paddingBottom="12dp"
+                    android:text="@string/export_path_placeholder"
+                    android:textColor="@color/planner_muted"
+                    android:textIsSelectable="true"
+                    android:textSize="12sp" />
+
+                <Button
+                    android:id="@+id/resetExportFolderButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/bg_primary_button"
+                    android:fontFamily="sans-serif-medium"
+                    android:minHeight="50dp"
+                    android:text="@string/reset_export_folder_button"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/white"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:text="@string/json_title"
+                    android:textColor="@color/planner_primary"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/jsonPreviewText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_info_panel"
+                    android:fontFamily="monospace"
+                    android:lineSpacingExtra="3dp"
+                    android:paddingLeft="14dp"
+                    android:paddingTop="12dp"
+                    android:paddingRight="14dp"
+                    android:paddingBottom="12dp"
+                    android:text="@string/json_placeholder"
+                    android:textIsSelectable="true"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/altitudeInput"
+                    android:layout_width="1dp"
+                    android:layout_height="1dp" />
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/frontOverlapInput"
+                    android:layout_width="1dp"
+                    android:layout_height="1dp" />
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/sideOverlapInput"
+                    android:layout_width="1dp"
+                    android:layout_height="1dp" />
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/gridAngleInput"
+                    android:layout_width="1dp"
+                    android:layout_height="1dp" />
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/speedInput"
+                    android:layout_width="1dp"
+                    android:layout_height="1dp" />
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/circleRadiusInput"
+                    android:layout_width="1dp"
+                    android:layout_height="1dp" />
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/circleOverlapInput"
+                    android:layout_width="1dp"
+                    android:layout_height="1dp" />
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/circlePointsInput"
+                    android:layout_width="1dp"
+                    android:layout_height="1dp" />
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/circleFocusHeightInput"
+                    android:layout_width="1dp"
+                    android:layout_height="1dp" />
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/circleTiltInput"
+                    android:layout_width="1dp"
+                    android:layout_height="1dp" />
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/circleMaxExtensionInput"
+                    android:layout_width="1dp"
+                    android:layout_height="1dp" />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <FrameLayout
+        android:id="@+id/saveDialogOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#800C1217"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/saveDialogCard"
+            android:layout_width="360dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_menu_panel"
+            android:clickable="true"
+            android:elevation="18dp"
+            android:focusable="true"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/save_dialog_title"
+                android:textColor="@color/planner_primary"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/savePlanSummaryText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_info_panel"
+                android:fontFamily="monospace"
+                android:lineSpacingExtra="3dp"
+                android:paddingLeft="14dp"
+                android:paddingTop="12dp"
+                android:paddingRight="14dp"
+                android:paddingBottom="12dp"
+                android:text="@string/save_dialog_placeholder"
+                android:textColor="@color/planner_text"
+                android:textSize="13sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="@string/save_dialog_name"
+                android:textColor="@color/planner_text" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColorHint="@color/planner_muted"
+                app:boxBackgroundMode="filled"
+                app:boxStrokeColor="@color/planner_button_stroke"
+                app:hintTextColor="@color/planner_muted">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/savePlanNameInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/save_dialog_name"
+                    android:inputType="textCapSentences"
+                    android:textColor="@color/planner_text"
+                    android:textColorHint="@color/planner_muted" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/saveDialogCloseButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_overlay_button"
+                    android:fontFamily="sans-serif-medium"
+                    android:minHeight="50dp"
+                    android:text="@string/save_dialog_cancel"
+                    android:textAllCaps="false"
+                    android:textColor="@color/planner_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <Space
+                    android:layout_width="10dp"
+                    android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/saveDialogExportButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_primary_button"
+                    android:minHeight="50dp"
+                    android:text="@string/save_dialog_export"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/white"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

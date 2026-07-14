@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_soft_input"
+    android:ellipsize="end"
+    android:gravity="center_vertical"
+    android:maxLines="1"
+    android:paddingLeft="14dp"
+    android:paddingTop="12dp"
+    android:paddingRight="40dp"
+    android:paddingBottom="12dp"
+    android:textColor="@color/planner_text"
+    android:textSize="15sp" />

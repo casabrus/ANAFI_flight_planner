@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  >
+  <title>ANAFI Planner Map</title>
+  <link rel="stylesheet" href="leaflet.css">
+  <style>
+    html, body, #map {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: #e8f0ec;
+      font-family: sans-serif;
+    }
+
+    .vertex-marker,
+    .takeoff-marker,
+    .route-label-marker,
+    .grid-rotation-marker,
+    .grid-rotation-handle-marker {
+      background: transparent;
+      border: none;
+    }
+
+    .vertex-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #b8691b;
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 2px rgba(31, 75, 67, 0.35);
+    }
+
+    .takeoff-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #8a3b12;
+      border: 3px solid #fff;
+      box-shadow: 0 0 0 3px rgba(184, 105, 27, 0.35);
+    }
+
+    .route-label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 22px;
+      padding: 0 8px;
+      border-radius: 4px;
+      background: #1f4b43;
+      color: #fff;
+      border: 2px solid #fff;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.22);
+      font: 700 10px/1 sans-serif;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .route-label-end {
+      background: #8a3b12;
+    }
+
+    .grid-rotation-core {
+      width: 42px;
+      height: 42px;
+      border-radius: 21px;
+      background: rgba(17, 75, 155, 0.18);
+      border: 2px solid rgba(17, 75, 155, 0.95);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+      position: relative;
+    }
+
+    .grid-rotation-arrow {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 2px;
+      height: 16px;
+      margin-left: -1px;
+      margin-top: -14px;
+      background: #114b9b;
+      transform-origin: 50% 14px;
+    }
+
+    .grid-rotation-arrow::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -6px;
+      margin-left: -6px;
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-bottom: 8px solid #114b9b;
+    }
+
+    .grid-rotation-handle {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #114b9b;
+      border: 3px solid #fff;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.24);
+    }
+
+    .leaflet-bottom.leaflet-right {
+      right: auto;
+      left: 8px;
+    }
+
+    .leaflet-control-attribution {
+      margin-left: 0;
+      margin-right: 0;
+      border-radius: 10px 10px 0 0;
+      background: rgba(255, 255, 255, 0.82);
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script src="leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
