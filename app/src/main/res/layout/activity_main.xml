@@ -128,7 +128,7 @@
             android:layout_marginBottom="10dp"
             android:background="@drawable/bg_menu_panel"
             android:orientation="vertical"
-            android:padding="22dp">
+            android:padding="18dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -145,22 +145,15 @@
                     android:textSize="26sp"
                     android:textStyle="bold" />
 
-                <Button
+                <ImageButton
                     android:id="@+id/closeMenuButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
                     android:background="@drawable/bg_overlay_button"
-                    android:minHeight="0dp"
-                    android:paddingLeft="16dp"
-                    android:paddingTop="10dp"
-                    android:paddingRight="16dp"
-                    android:paddingBottom="10dp"
-                    android:text="@string/close_button"
-                    android:textAllCaps="false"
-                    android:textColor="@color/planner_primary"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium" />
+                    android:contentDescription="@string/close_button"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_close_planner"
+                    android:tint="@color/planner_primary" />
             </LinearLayout>
 
             <TextView
@@ -174,13 +167,23 @@
             <com.google.android.material.tabs.TabLayout
                 android:id="@+id/menuTabs"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_height="44dp"
+                android:layout_marginTop="16dp"
                 android:background="@drawable/bg_tab_shell"
-                android:padding="6dp"
+                android:minHeight="0dp"
+                android:paddingLeft="6dp"
+                android:paddingTop="5dp"
+                android:paddingRight="6dp"
+                android:paddingBottom="5dp"
+                app:tabIndicatorGravity="stretch"
                 app:tabIndicator="@drawable/bg_tab_indicator"
                 app:tabIndicatorFullWidth="true"
+                app:tabIndicatorHeight="34dp"
                 app:tabMode="fixed"
+                app:tabPaddingBottom="0dp"
+                app:tabPaddingEnd="8dp"
+                app:tabPaddingStart="8dp"
+                app:tabPaddingTop="0dp"
                 app:tabSelectedTextColor="@android:color/white"
                 app:tabTextColor="@color/planner_primary" />
 
@@ -188,23 +191,24 @@
                 android:id="@+id/setupTabContent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:background="@drawable/bg_section_card"
+                android:layout_marginTop="16dp"
                 android:orientation="vertical"
-                android:padding="18dp">
+                android:padding="0dp">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:letterSpacing="0.12"
                     android:text="@string/section_mission"
+                    android:textAllCaps="true"
                     android:textColor="@color/planner_primary"
-                    android:textSize="12sp"
+                    android:textSize="11sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
+                    android:layout_marginTop="12dp"
                     android:text="@string/mission_mode_label"
                     android:textColor="@color/planner_text" />
 
@@ -228,14 +232,16 @@
                         android:id="@+id/missionGridButton"
                         style="@style/Widget.Material3.Button.OutlinedButton"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="48dp"
                         android:layout_weight="1"
                         android:fontFamily="sans-serif-medium"
-                        android:minHeight="68dp"
+                        android:minHeight="48dp"
+                        android:paddingTop="0dp"
+                        android:paddingBottom="0dp"
                         android:text="@string/mission_mode_grid"
                         android:textAllCaps="false"
                         android:textColor="@color/toggle_button_text"
-                        android:textSize="15sp"
+                        android:textSize="14sp"
                         app:backgroundTint="@color/toggle_button_background"
                         app:strokeColor="@color/planner_button_stroke" />
 
@@ -243,14 +249,16 @@
                         android:id="@+id/missionCircleButton"
                         style="@style/Widget.Material3.Button.OutlinedButton"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="48dp"
                         android:layout_weight="1"
                         android:fontFamily="sans-serif-medium"
-                        android:minHeight="68dp"
+                        android:minHeight="48dp"
+                        android:paddingTop="0dp"
+                        android:paddingBottom="0dp"
                         android:text="@string/mission_mode_circle"
                         android:textAllCaps="false"
                         android:textColor="@color/toggle_button_text"
-                        android:textSize="15sp"
+                        android:textSize="14sp"
                         app:backgroundTint="@color/toggle_button_background"
                         app:strokeColor="@color/planner_button_stroke" />
 
@@ -258,14 +266,16 @@
                         android:id="@+id/missionHybridButton"
                         style="@style/Widget.Material3.Button.OutlinedButton"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="48dp"
                         android:layout_weight="1"
                         android:fontFamily="sans-serif-medium"
-                        android:minHeight="68dp"
+                        android:minHeight="48dp"
+                        android:paddingTop="0dp"
+                        android:paddingBottom="0dp"
                         android:text="@string/mission_mode_hybrid"
                         android:textAllCaps="false"
                         android:textColor="@color/toggle_button_text"
-                        android:textSize="15sp"
+                        android:textSize="14sp"
                         app:backgroundTint="@color/toggle_button_background"
                         app:strokeColor="@color/planner_button_stroke" />
                 </com.google.android.material.button.MaterialButtonToggleGroup>
@@ -273,7 +283,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
+                    android:layout_marginTop="16dp"
                     android:text="@string/camera_label"
                     android:textColor="@color/planner_text" />
 
@@ -297,14 +307,16 @@
                         android:id="@+id/cameraRawButton"
                         style="@style/Widget.Material3.Button.OutlinedButton"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="48dp"
                         android:layout_weight="1"
                         android:fontFamily="sans-serif-medium"
-                        android:minHeight="62dp"
+                        android:minHeight="48dp"
+                        android:paddingTop="0dp"
+                        android:paddingBottom="0dp"
                         android:text="@string/camera_profile_raw"
                         android:textAllCaps="false"
                         android:textColor="@color/toggle_button_text"
-                        android:textSize="15sp"
+                        android:textSize="14sp"
                         app:backgroundTint="@color/toggle_button_background"
                         app:strokeColor="@color/planner_button_stroke" />
 
@@ -312,14 +324,16 @@
                         android:id="@+id/cameraWideJpgButton"
                         style="@style/Widget.Material3.Button.OutlinedButton"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="48dp"
                         android:layout_weight="1"
                         android:fontFamily="sans-serif-medium"
-                        android:minHeight="62dp"
+                        android:minHeight="48dp"
+                        android:paddingTop="0dp"
+                        android:paddingBottom="0dp"
                         android:text="@string/camera_profile_wide_jpg"
                         android:textAllCaps="false"
                         android:textColor="@color/toggle_button_text"
-                        android:textSize="15sp"
+                        android:textSize="14sp"
                         app:backgroundTint="@color/toggle_button_background"
                         app:strokeColor="@color/planner_button_stroke" />
 
@@ -327,14 +341,16 @@
                         android:id="@+id/cameraJpgButton"
                         style="@style/Widget.Material3.Button.OutlinedButton"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="48dp"
                         android:layout_weight="1"
                         android:fontFamily="sans-serif-medium"
-                        android:minHeight="62dp"
+                        android:minHeight="48dp"
+                        android:paddingTop="0dp"
+                        android:paddingBottom="0dp"
                         android:text="@string/camera_profile_jpg"
                         android:textAllCaps="false"
                         android:textColor="@color/toggle_button_text"
-                        android:textSize="15sp"
+                        android:textSize="14sp"
                         app:backgroundTint="@color/toggle_button_background"
                         app:strokeColor="@color/planner_button_stroke" />
                 </com.google.android.material.button.MaterialButtonToggleGroup>
@@ -343,10 +359,10 @@
                     android:id="@+id/altitudeSliderBlock"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
+                    android:layout_marginTop="16dp"
                     android:background="@drawable/bg_info_panel"
                     android:orientation="vertical"
-                    android:padding="14dp">
+                    android:padding="12dp">
 
                     <TextView
                         android:id="@+id/altitudeValueText"
@@ -381,9 +397,9 @@
                     android:layout_marginTop="18dp"
                     android:background="@drawable/bg_info_panel"
                     android:paddingLeft="14dp"
-                    android:paddingTop="12dp"
+                    android:paddingTop="10dp"
                     android:paddingRight="14dp"
-                    android:paddingBottom="12dp"
+                    android:paddingBottom="10dp"
                     android:text="@string/speed_auto_placeholder"
                     android:textColor="@color/planner_muted"
                     android:textSize="12sp" />
@@ -395,7 +411,7 @@
                     android:layout_marginTop="10dp"
                     android:background="@drawable/bg_info_panel"
                     android:orientation="vertical"
-                    android:padding="14dp">
+                    android:padding="12dp">
 
                     <TextView
                         android:id="@+id/speedValueText"
@@ -419,18 +435,19 @@
                 android:id="@+id/geometryTabContent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:background="@drawable/bg_section_card"
+                android:layout_marginTop="16dp"
                 android:orientation="vertical"
-                android:padding="18dp"
+                android:padding="0dp"
                 android:visibility="gone">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:letterSpacing="0.12"
                     android:text="@string/section_geometry"
+                    android:textAllCaps="true"
                     android:textColor="@color/planner_primary"
-                    android:textSize="12sp"
+                    android:textSize="11sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -445,14 +462,21 @@
                     android:id="@+id/gridInputsGroup"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:background="@drawable/bg_info_panel"
-                    android:orientation="vertical"
-                    android:padding="14dp">
+                    android:layout_marginTop="14dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/geometry_grid_title"
+                        android:textColor="@color/planner_text"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
                         android:orientation="vertical">
 
                         <TextView
@@ -509,25 +533,114 @@
                     android:id="@+id/circleInputsGroup"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:background="@drawable/bg_info_panel"
-                    android:orientation="vertical"
-                    android:padding="14dp">
+                    android:layout_marginTop="18dp"
+                    android:orientation="vertical">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/planner_panel_stroke" />
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:text="@string/geometry_assisted_title"
+                        android:textColor="@color/planner_text"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/geometry_assisted_helper"
+                        android:textColor="@color/planner_muted"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
                         android:text="@string/circle_optimization_label"
                         android:textColor="@color/planner_text" />
 
-                    <Spinner
-                        android:id="@+id/circleOptimizationSpinner"
+                    <com.google.android.material.button.MaterialButtonToggleGroup
+                        android:id="@+id/circleOptimizationGroup"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:background="@drawable/bg_soft_input"
-                        android:popupBackground="@drawable/bg_spinner_popup"
-                        android:spinnerMode="dropdown" />
+                        app:selectionRequired="true"
+                        app:singleSelection="true">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/circleOptimizationFastButton"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_weight="1"
+                            android:fontFamily="sans-serif-medium"
+                            android:minHeight="44dp"
+                            android:paddingTop="0dp"
+                            android:paddingBottom="0dp"
+                            android:text="@string/circle_optimization_fixed"
+                            android:textAllCaps="false"
+                            android:textColor="@color/toggle_button_text"
+                            android:textSize="12sp"
+                            app:backgroundTint="@color/toggle_button_background"
+                            app:strokeColor="@color/planner_button_stroke" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/circleOptimizationNormalButton"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_weight="1"
+                            android:fontFamily="sans-serif-medium"
+                            android:minHeight="44dp"
+                            android:paddingTop="0dp"
+                            android:paddingBottom="0dp"
+                            android:text="@string/circle_optimization_fastest"
+                            android:textAllCaps="false"
+                            android:textColor="@color/toggle_button_text"
+                            android:textSize="12sp"
+                            app:backgroundTint="@color/toggle_button_background"
+                            app:strokeColor="@color/planner_button_stroke" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/circleOptimizationHighButton"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_weight="1"
+                            android:fontFamily="sans-serif-medium"
+                            android:minHeight="44dp"
+                            android:paddingTop="0dp"
+                            android:paddingBottom="0dp"
+                            android:text="@string/circle_optimization_balanced"
+                            android:textAllCaps="false"
+                            android:textColor="@color/toggle_button_text"
+                            android:textSize="12sp"
+                            app:backgroundTint="@color/toggle_button_background"
+                            app:strokeColor="@color/planner_button_stroke" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/circleOptimizationCustomButton"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_weight="1"
+                            android:fontFamily="sans-serif-medium"
+                            android:minHeight="44dp"
+                            android:paddingTop="0dp"
+                            android:paddingBottom="0dp"
+                            android:text="@string/circle_optimization_custom"
+                            android:textAllCaps="false"
+                            android:textColor="@color/toggle_button_text"
+                            android:textSize="12sp"
+                            app:backgroundTint="@color/toggle_button_background"
+                            app:strokeColor="@color/planner_button_stroke" />
+                    </com.google.android.material.button.MaterialButtonToggleGroup>
 
                     <LinearLayout
                         android:id="@+id/circleMaxExtensionBlock"
@@ -560,14 +673,90 @@
                         android:text="@string/circle_focus_target_label"
                         android:textColor="@color/planner_text" />
 
-                    <Spinner
-                        android:id="@+id/circleFocusTargetSpinner"
+                    <com.google.android.material.button.MaterialButtonToggleGroup
+                        android:id="@+id/circleFocusTargetGroup"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:background="@drawable/bg_soft_input"
-                        android:popupBackground="@drawable/bg_spinner_popup"
-                        android:spinnerMode="dropdown" />
+                        app:selectionRequired="true"
+                        app:singleSelection="true">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/circleFocusGroundButton"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_weight="1"
+                            android:fontFamily="sans-serif-medium"
+                            android:minHeight="44dp"
+                            android:paddingLeft="2dp"
+                            android:paddingTop="0dp"
+                            android:paddingRight="2dp"
+                            android:paddingBottom="0dp"
+                            android:text="@string/circle_focus_ground_short"
+                            android:textAllCaps="false"
+                            android:textColor="@color/toggle_button_text"
+                            android:textSize="12sp"
+                            app:backgroundTint="@color/toggle_button_background"
+                            app:strokeColor="@color/planner_button_stroke" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/circleFocusCanopyButton"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_weight="1"
+                            android:fontFamily="sans-serif-medium"
+                            android:minHeight="44dp"
+                            android:paddingLeft="2dp"
+                            android:paddingTop="0dp"
+                            android:paddingRight="2dp"
+                            android:paddingBottom="0dp"
+                            android:text="@string/circle_focus_canopy_short"
+                            android:textAllCaps="false"
+                            android:textColor="@color/toggle_button_text"
+                            android:textSize="12sp"
+                            app:backgroundTint="@color/toggle_button_background"
+                            app:strokeColor="@color/planner_button_stroke" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/circleFocusObjectButton"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_weight="1"
+                            android:fontFamily="sans-serif-medium"
+                            android:minHeight="44dp"
+                            android:paddingLeft="2dp"
+                            android:paddingTop="0dp"
+                            android:paddingRight="2dp"
+                            android:paddingBottom="0dp"
+                            android:text="@string/circle_focus_object_short"
+                            android:textAllCaps="false"
+                            android:textColor="@color/toggle_button_text"
+                            android:textSize="12sp"
+                            app:backgroundTint="@color/toggle_button_background"
+                            app:strokeColor="@color/planner_button_stroke" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/circleFocusCustomButton"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_weight="1"
+                            android:fontFamily="sans-serif-medium"
+                            android:minHeight="44dp"
+                            android:paddingLeft="2dp"
+                            android:paddingTop="0dp"
+                            android:paddingRight="2dp"
+                            android:paddingBottom="0dp"
+                            android:text="@string/circle_focus_custom"
+                            android:textAllCaps="false"
+                            android:textColor="@color/toggle_button_text"
+                            android:textSize="12sp"
+                            app:backgroundTint="@color/toggle_button_background"
+                            app:strokeColor="@color/planner_button_stroke" />
+                    </com.google.android.material.button.MaterialButtonToggleGroup>
 
                     <LinearLayout
                         android:id="@+id/circleFocusHeightBlock"
@@ -602,16 +791,6 @@
                         android:textSize="12sp"
                         android:textStyle="bold" />
 
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/circleLockRadiusSwitch"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="@string/circle_lock_radius"
-                        android:textColor="@color/planner_text"
-                        app:thumbTint="@color/planner_switch_thumb"
-                        app:trackTint="@color/planner_switch_track" />
-
                     <LinearLayout
                         android:id="@+id/circleRadiusBlock"
                         android:layout_width="match_parent"
@@ -635,16 +814,6 @@
                             android:valueTo="120"
                             android:stepSize="1" />
                     </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/circleLockAngleSwitch"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="@string/circle_lock_angle"
-                        android:textColor="@color/planner_text"
-                        app:thumbTint="@color/planner_switch_thumb"
-                        app:trackTint="@color/planner_switch_track" />
 
                     <LinearLayout
                         android:id="@+id/circleTiltBlock"
@@ -670,16 +839,6 @@
                             android:stepSize="1" />
                     </LinearLayout>
 
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/circleManualOverlapSwitch"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="@string/circle_manual_overlap"
-                        android:textColor="@color/planner_text"
-                        app:thumbTint="@color/planner_switch_thumb"
-                        app:trackTint="@color/planner_switch_track" />
-
                     <LinearLayout
                         android:id="@+id/circleOverlapBlock"
                         android:layout_width="match_parent"
@@ -703,16 +862,6 @@
                             android:valueTo="70"
                             android:stepSize="1" />
                     </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/circleManualPointsSwitch"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="@string/circle_manual_points"
-                        android:textColor="@color/planner_text"
-                        app:thumbTint="@color/planner_switch_thumb"
-                        app:trackTint="@color/planner_switch_track" />
 
                     <LinearLayout
                         android:id="@+id/circlePointsBlock"
@@ -744,19 +893,20 @@
                 android:id="@+id/reviewTabContent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:layout_marginBottom="20dp"
-                android:background="@drawable/bg_section_card"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"
                 android:orientation="vertical"
-                android:padding="18dp"
+                android:padding="0dp"
                 android:visibility="gone">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:letterSpacing="0.12"
                     android:text="@string/section_more_storage"
+                    android:textAllCaps="true"
                     android:textColor="@color/planner_primary"
-                    android:textSize="12sp"
+                    android:textSize="11sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -907,8 +1057,12 @@
         <LinearLayout
             android:id="@+id/saveDialogCard"
             android:layout_width="360dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_gravity="center"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="24dp"
             android:background="@drawable/bg_menu_panel"
             android:clickable="true"
             android:elevation="18dp"
@@ -924,47 +1078,102 @@
                 android:textSize="22sp"
                 android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/savePlanSummaryText"
+            <androidx.core.widget.NestedScrollView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
                 android:layout_marginTop="12dp"
-                android:background="@drawable/bg_info_panel"
-                android:fontFamily="monospace"
-                android:lineSpacingExtra="3dp"
-                android:paddingLeft="14dp"
-                android:paddingTop="12dp"
-                android:paddingRight="14dp"
-                android:paddingBottom="12dp"
-                android:text="@string/save_dialog_placeholder"
-                android:textColor="@color/planner_text"
-                android:textSize="13sp" />
+                android:clipToPadding="false"
+                android:fillViewport="false"
+                android:overScrollMode="ifContentScrolls">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:text="@string/save_dialog_name"
-                android:textColor="@color/planner_text" />
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColorHint="@color/planner_muted"
-                app:boxBackgroundMode="filled"
-                app:boxStrokeColor="@color/planner_button_stroke"
-                app:hintTextColor="@color/planner_muted">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/savePlanNameInput"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/save_dialog_name"
-                    android:inputType="textCapSentences"
-                    android:textColor="@color/planner_text"
-                    android:textColorHint="@color/planner_muted" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/saveDialogStatusText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_info_panel"
+                        android:lineSpacingExtra="2dp"
+                        android:paddingLeft="14dp"
+                        android:paddingTop="10dp"
+                        android:paddingRight="14dp"
+                        android:paddingBottom="10dp"
+                        android:text="@string/save_dialog_ready"
+                        android:textColor="@color/planner_muted"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/savePlanSummaryText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/bg_info_panel"
+                        android:fontFamily="monospace"
+                        android:lineSpacingExtra="3dp"
+                        android:paddingLeft="14dp"
+                        android:paddingTop="12dp"
+                        android:paddingRight="14dp"
+                        android:paddingBottom="12dp"
+                        android:text="@string/save_dialog_placeholder"
+                        android:textColor="@color/planner_text"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/savePlanWarningText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/bg_warning_panel"
+                        android:fontFamily="monospace"
+                        android:lineSpacingExtra="3dp"
+                        android:paddingLeft="14dp"
+                        android:paddingTop="12dp"
+                        android:paddingRight="14dp"
+                        android:paddingBottom="12dp"
+                        android:textColor="@color/planner_warning"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:text="@string/save_dialog_name"
+                        android:textColor="@color/planner_text" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:background="@drawable/bg_plan_name_input"
+                        android:paddingLeft="2dp"
+                        android:paddingTop="2dp"
+                        android:paddingRight="2dp"
+                        android:paddingBottom="2dp"
+                        android:textColorHint="@color/planner_muted"
+                        app:boxBackgroundMode="filled"
+                        app:boxBackgroundColor="@android:color/white"
+                        app:boxStrokeColor="@color/planner_primary"
+                        app:boxStrokeWidth="1dp"
+                        app:boxStrokeWidthFocused="2dp"
+                        app:hintTextColor="@color/planner_muted">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/savePlanNameInput"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/save_dialog_name"
+                            android:inputType="textCapSentences"
+                            android:textColor="@color/planner_text"
+                            android:textColorHint="@color/planner_muted" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+            </androidx.core.widget.NestedScrollView>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -973,28 +1182,9 @@
                 android:orientation="horizontal">
 
                 <Button
-                    android:id="@+id/saveDialogCloseButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_overlay_button"
-                    android:fontFamily="sans-serif-medium"
-                    android:minHeight="50dp"
-                    android:text="@string/save_dialog_cancel"
-                    android:textAllCaps="false"
-                    android:textColor="@color/planner_primary"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-
-                <Space
-                    android:layout_width="10dp"
-                    android:layout_height="1dp" />
-
-                <Button
                     android:id="@+id/saveDialogExportButton"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:background="@drawable/bg_primary_button"
                     android:minHeight="50dp"
                     android:text="@string/save_dialog_export"

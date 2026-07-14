@@ -100,6 +100,12 @@
       border-bottom: 8px solid #114b9b;
     }
 
+    .grid-rotation-handle-marker {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     .grid-rotation-handle {
       width: 18px;
       height: 18px;
@@ -107,6 +113,12 @@
       background: #114b9b;
       border: 3px solid #fff;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.24);
+      box-sizing: border-box;
+      cursor: grab;
+    }
+
+    .grid-rotation-handle:active {
+      cursor: grabbing;
     }
 
     .leaflet-bottom.leaflet-right {

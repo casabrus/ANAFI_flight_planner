@@ -10,6 +10,11 @@
     <color name="planner_surface">#EEF1F4</color>
     <color name="planner_text">#16232B</color>
     <color name="planner_warning">#8A3B12</color>
+    <color name="planner_warning_background">#FFFFF1DF</color>
+    <color name="planner_warning_stroke">#55B8691B</color>
+    <color name="planner_error">#B42318</color>
+    <color name="planner_error_background">#FFFFE9E7</color>
+    <color name="planner_error_stroke">#66B42318</color>
     <color name="planner_json_background">#EDF1F4</color>
     <color name="planner_overlay_scrim">#E8EFF3F6</color>
     <color name="planner_panel_surface">#FAFFFFFF</color>

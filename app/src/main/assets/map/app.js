@@ -70,6 +70,7 @@
   let rotationCenterMarker = null;
   let rotationHandleMarker = null;
   let rotationGuide = null;
+  let rotationHandleDragging = false;
   let rotationNotifyTimer = null;
 
   function clonePoint(latlng) {
@@ -309,33 +310,8 @@
     return normalizeAngle(Math.atan2(to.lng - from.lng, to.lat - from.lat) * 180 / Math.PI);
   }
 
-  function offsetLatLng(origin, bearingDeg, distanceM) {
-    const angleRad = bearingDeg * Math.PI / 180;
-    const metersPerLatDegree = 111320;
-    const metersPerLonDegree = metersPerLatDegree * Math.cos(origin.lat * Math.PI / 180);
-    const latOffset = (Math.cos(angleRad) * distanceM) / metersPerLatDegree;
-    const lonOffset = (Math.sin(angleRad) * distanceM) / Math.max(metersPerLonDegree, 1e-6);
-    return L.latLng(origin.lat + latOffset, origin.lng + lonOffset);
-  }
-
   function rotationCenter() {
     return averagePoint(state.polygon);
-  }
-
-  function rotationRadiusMeters(center) {
-    if (!center || state.polygon.length < 3) {
-      return 24;
-    }
-
-    let maxDistance = 0;
-    state.polygon.forEach((point) => {
-      maxDistance = Math.max(
-        maxDistance,
-        map.distance(center, L.latLng(point.lat, point.lon))
-      );
-    });
-
-    return Math.max(18, Math.min(48, maxDistance * 0.22));
   }
 
   function centerRotationIcon(angleDeg) {
@@ -351,7 +327,7 @@
     });
   }
 
-  function handleRotationIcon() {
+  function rotationHandleIcon() {
     return L.divIcon({
       className: "grid-rotation-handle-marker",
       html: '<div class="grid-rotation-handle"></div>',
@@ -387,17 +363,31 @@
     rotationCenterMarker = null;
     rotationHandleMarker = null;
     rotationGuide = null;
+    rotationHandleDragging = false;
   }
 
-  function updateRotationPreview(center, handleLatLng) {
-    if (!rotationCenterMarker || !rotationHandleMarker || !rotationGuide) {
+  function updateRotationGuide(center, handle, visible) {
+    if (!rotationGuide) {
+      return;
+    }
+
+    rotationGuide.setLatLngs([center, handle]);
+    rotationGuide.setStyle({
+      opacity: visible ? 0.85 : 0
+    });
+  }
+
+  function updateRotationPreview(center) {
+    if (!rotationCenterMarker) {
       return;
     }
 
     rotationCenterMarker.setLatLng(center);
     rotationCenterMarker.setIcon(centerRotationIcon(state.gridAngleDeg));
-    rotationHandleMarker.setLatLng(handleLatLng);
-    rotationGuide.setLatLngs([center, handleLatLng]);
+    if (rotationHandleMarker && !rotationHandleDragging) {
+      rotationHandleMarker.setLatLng(center);
+      updateRotationGuide(center, center, false);
+    }
   }
 
   function rebuildRotationHandle() {
@@ -407,47 +397,70 @@
     }
 
     const center = rotationCenter();
-    const radiusM = rotationRadiusMeters(center);
-    const handleLatLng = offsetLatLng(center, gridAngleToBearing(state.gridAngleDeg), radiusM);
 
     if (!rotationCenterMarker) {
-      rotationCenterMarker = L.marker(center, {
-        icon: centerRotationIcon(state.gridAngleDeg),
-        keyboard: false,
+      rotationGuide = L.polyline([center, center], {
+        color: "#114b9b",
+        weight: 2,
+        opacity: 0,
+        dashArray: "4 6",
         interactive: false
       }).addTo(rotationLayer);
 
-      rotationGuide = L.polyline([center, handleLatLng], {
-        color: "#114b9b",
-        weight: 2,
-        opacity: 0.85,
-        dashArray: "6 5"
+      rotationCenterMarker = L.marker(center, {
+        icon: centerRotationIcon(state.gridAngleDeg),
+        interactive: false,
+        keyboard: false,
+        bubblingMouseEvents: false
       }).addTo(rotationLayer);
 
-      rotationHandleMarker = L.marker(handleLatLng, {
-        icon: handleRotationIcon(),
+      rotationHandleMarker = L.marker(center, {
+        icon: rotationHandleIcon(),
         draggable: true,
-        keyboard: false
+        keyboard: false,
+        bubblingMouseEvents: false,
+        zIndexOffset: 1000
       }).addTo(rotationLayer);
 
-      rotationHandleMarker.on("dragstart", function () {
+      rotationHandleMarker.on("dragstart", function (event) {
+        rotationHandleDragging = true;
         map.dragging.disable();
+        const activeCenter = rotationCenter();
+        event.target.setLatLng(activeCenter);
+        updateRotationGuide(activeCenter, activeCenter, true);
       });
 
       rotationHandleMarker.on("drag", function (event) {
-        const dragBearing = bearingDegrees(center, event.target.getLatLng());
+        const activeCenter = rotationCenter();
+        const dragLatLng = event.target.getLatLng();
+        updateRotationGuide(activeCenter, dragLatLng, true);
+        if (map.distance(activeCenter, dragLatLng) < 0.5) {
+          return;
+        }
+        const dragBearing = bearingDegrees(activeCenter, dragLatLng);
         state.gridAngleDeg = bearingToGridAngle(dragBearing);
-        updateRotationPreview(center, event.target.getLatLng());
+        rotationCenterMarker.setIcon(centerRotationIcon(state.gridAngleDeg));
       });
 
-      rotationHandleMarker.on("dragend", function () {
+      rotationHandleMarker.on("dragend", function (event) {
+        const activeCenter = rotationCenter();
+        const dragLatLng = event.target.getLatLng();
+        if (map.distance(activeCenter, dragLatLng) >= 0.5) {
+          const dragBearing = bearingDegrees(activeCenter, dragLatLng);
+          state.gridAngleDeg = bearingToGridAngle(dragBearing);
+        }
+        event.target.setLatLng(activeCenter);
+        rotationCenterMarker.setLatLng(activeCenter);
+        rotationCenterMarker.setIcon(centerRotationIcon(state.gridAngleDeg));
+        updateRotationGuide(activeCenter, activeCenter, false);
+        rotationHandleDragging = false;
         rebuildRotationHandle();
         map.dragging.enable();
         scheduleGridAngleNotify(state.gridAngleDeg, true);
       });
     }
 
-    updateRotationPreview(center, handleLatLng);
+    updateRotationPreview(center);
   }
 
   function notifyPolygonChanged() {

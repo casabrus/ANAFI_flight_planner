@@ -16,7 +16,6 @@ import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.ArrayAdapter
 import android.widget.TextView
 import android.widget.Toast
 import android.view.WindowManager
@@ -77,10 +76,16 @@ class MainActivity : AppCompatActivity() {
     private enum class CircleQuality(
         val targetOffNadirDeg: Double,
         val targetSegmentLengthM: Double,
+        val targetOverlapPercent: Double,
     ) {
-        FAST(30.0, 16.0),
-        NORMAL(38.0, 12.0),
-        HIGH(46.0, 8.0),
+        FAST(30.0, 16.0, 25.0),
+        NORMAL(38.0, 12.0, 50.0),
+        HIGH(46.0, 8.0, 70.0),
+    }
+
+    private enum class SaveDialogWarningSeverity {
+        CAUTION,
+        BLOCKING,
     }
 
     private lateinit var binding: ActivityMainBinding
@@ -109,6 +114,7 @@ class MainActivity : AppCompatActivity() {
     private var focusMapOnNextSync = true
     private var currentBaseMap = "imagery"
     private var suppressAutoGenerate = false
+    private var suppressCirclePresetCallbacks = false
     private var pendingExportAfterFolderSelection = false
     private var manualSpeedOverrideMps: Double? = null
     private var currentSpeedLimitMps = 0.0
@@ -188,21 +194,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupInputs() {
         suppressAutoGenerate = true
-        binding.circleOptimizationSpinner.adapter = spinnerAdapter(
-            listOf(
-                getString(R.string.circle_optimization_fixed),
-                getString(R.string.circle_optimization_fastest),
-                getString(R.string.circle_optimization_balanced),
-            ),
-        )
-        binding.circleFocusTargetSpinner.adapter = spinnerAdapter(
-            listOf(
-                getString(R.string.circle_focus_ground),
-                getString(R.string.circle_focus_canopy),
-                getString(R.string.circle_focus_object),
-                getString(R.string.circle_focus_custom),
-            ),
-        )
 
         binding.menuTabs.addTab(binding.menuTabs.newTab().setText(R.string.tab_setup))
         binding.menuTabs.addTab(binding.menuTabs.newTab().setText(R.string.tab_geometry))
@@ -237,37 +228,31 @@ class MainActivity : AppCompatActivity() {
             syncCircleSuggestedControls()
             maybeGeneratePlan()
         }
-        binding.circleOptimizationSpinner.onItemSelectedListener = SimpleItemSelectedListener {
+        binding.circleOptimizationGroup.addOnButtonCheckedListener { _, _, isChecked ->
+            if (!isChecked) {
+                return@addOnButtonCheckedListener
+            }
+            if (suppressCirclePresetCallbacks) {
+                return@addOnButtonCheckedListener
+            }
             syncCircleSuggestedControls()
             updateCircleUiState()
             maybeGeneratePlan()
         }
-        binding.circleFocusTargetSpinner.onItemSelectedListener = SimpleItemSelectedListener {
+        binding.circleFocusTargetGroup.addOnButtonCheckedListener { _, _, isChecked ->
+            if (!isChecked) {
+                return@addOnButtonCheckedListener
+            }
+            if (suppressCirclePresetCallbacks) {
+                return@addOnButtonCheckedListener
+            }
+            syncFocusHeightFromPreset()
             syncCircleSuggestedControls()
             updateCircleUiState()
             maybeGeneratePlan()
         }
-        binding.circleLockRadiusSwitch.setOnCheckedChangeListener { _, isChecked ->
-            syncCircleSuggestedControls(forceRadius = isChecked)
-            updateCircleUiState()
-            maybeGeneratePlan()
-        }
-        binding.circleLockAngleSwitch.setOnCheckedChangeListener { _, isChecked ->
-            syncCircleSuggestedControls(forceTilt = isChecked)
-            updateCircleUiState()
-            maybeGeneratePlan()
-        }
-        binding.circleManualOverlapSwitch.setOnCheckedChangeListener { _, _ ->
-            updateCircleUiState()
-            maybeGeneratePlan()
-        }
-        binding.circleManualPointsSwitch.setOnCheckedChangeListener { _, isChecked ->
-            syncCircleSuggestedControls(forcePoints = isChecked)
-            updateCircleUiState()
-            maybeGeneratePlan()
-        }
-        binding.circleOptimizationSpinner.setSelection(1, false)
-        binding.circleFocusTargetSpinner.setSelection(0, false)
+        binding.circleOptimizationGroup.check(R.id.circleOptimizationNormalButton)
+        binding.circleFocusTargetGroup.check(R.id.circleFocusGroundButton)
         setMenuTab(0)
         updateMissionInputVisibility()
         updateCircleUiState()
@@ -348,7 +333,12 @@ class MainActivity : AppCompatActivity() {
             },
             inputFormatter = { value -> formatSliderDecimal(value, 1) },
         )
-        binding.circleFocusHeightSlider.addOnChangeListener { _, _, _ -> syncCircleSuggestedControls() }
+        binding.circleFocusHeightSlider.addOnChangeListener { _, _, fromUser ->
+            if (fromUser) {
+                selectCustomFocusTarget()
+                syncCircleSuggestedControls()
+            }
+        }
         bindSlider(
             slider = binding.circleTiltSlider,
             labelView = binding.circleTiltValueText,
@@ -369,15 +359,17 @@ class MainActivity : AppCompatActivity() {
             },
             inputFormatter = { value -> formatSliderDecimal(value, 0) },
         )
-    }
-
-    private fun spinnerAdapter(items: List<String>): ArrayAdapter<String> {
-        return ArrayAdapter(
-            this,
-            R.layout.item_spinner_selected,
-            items,
-        ).apply {
-            setDropDownViewResource(R.layout.item_spinner_dropdown)
+        listOf(
+            binding.circleRadiusSlider,
+            binding.circleTiltSlider,
+            binding.circleOverlapSlider,
+            binding.circlePointsSlider,
+        ).forEach { slider ->
+            slider.addOnChangeListener { _, _, fromUser ->
+                if (fromUser) {
+                    selectCustomCircleGeometry()
+                }
+            }
         }
     }
 
@@ -516,11 +508,50 @@ class MainActivity : AppCompatActivity() {
         syncMapProject()
     }
 
-    private fun syncCircleSuggestedControls(
-        forceRadius: Boolean = false,
-        forceTilt: Boolean = false,
-        forcePoints: Boolean = false,
-    ) {
+    private fun isCircleGeometryCustom(): Boolean {
+        return binding.circleOptimizationGroup.checkedButtonId == R.id.circleOptimizationCustomButton
+    }
+
+    private fun selectCustomCircleGeometry() {
+        if (isCircleGeometryCustom()) {
+            return
+        }
+        suppressCirclePresetCallbacks = true
+        binding.circleOptimizationGroup.check(R.id.circleOptimizationCustomButton)
+        suppressCirclePresetCallbacks = false
+    }
+
+    private fun selectCustomFocusTarget() {
+        if (binding.circleFocusTargetGroup.checkedButtonId == R.id.circleFocusCustomButton) {
+            return
+        }
+        suppressCirclePresetCallbacks = true
+        binding.circleFocusTargetGroup.check(R.id.circleFocusCustomButton)
+        suppressCirclePresetCallbacks = false
+    }
+
+    private fun syncFocusHeightFromPreset() {
+        val presetFocusHeight = when (binding.circleFocusTargetGroup.checkedButtonId) {
+            R.id.circleFocusGroundButton -> 0.0
+            R.id.circleFocusCanopyButton -> 3.0
+            R.id.circleFocusObjectButton -> 1.5
+            else -> return
+        }
+        syncSliderPresentation(
+            slider = binding.circleFocusHeightSlider,
+            labelView = binding.circleFocusHeightValueText,
+            input = binding.circleFocusHeightInput,
+            value = presetFocusHeight,
+            decimals = 1,
+            title = getString(R.string.circle_focus_height_title),
+            suffix = "m",
+        )
+    }
+
+    private fun syncCircleSuggestedControls() {
+        if (isCircleGeometryCustom()) {
+            return
+        }
         val altitudeM = parseOptionalDouble(binding.altitudeInput.text?.toString(), "Altitude") ?: return
         val quality = selectedCircleQuality()
         val focusTarget = runCatching { selectedCircleFocusTarget() }.getOrNull() ?: return
@@ -532,41 +563,45 @@ class MainActivity : AppCompatActivity() {
             )
         }.getOrNull() ?: return
         val suggestedTiltDeg = (90.0 - quality.targetOffNadirDeg).coerceIn(20.0, 85.0)
+        val suggestedOverlap = quality.targetOverlapPercent
         val suggestedPoints = autoCirclePointsPerCircle(suggestedRadiusM, quality.targetSegmentLengthM)
 
-        if (forceRadius || !binding.circleLockRadiusSwitch.isChecked) {
-            syncSliderPresentation(
-                slider = binding.circleRadiusSlider,
-                labelView = binding.circleRadiusValueText,
-                input = binding.circleRadiusInput,
-                value = suggestedRadiusM,
-                decimals = 0,
-                title = getString(R.string.circle_radius_title),
-                suffix = "m",
-            )
-        }
-        if (forceTilt || !binding.circleLockAngleSwitch.isChecked) {
-            syncSliderPresentation(
-                slider = binding.circleTiltSlider,
-                labelView = binding.circleTiltValueText,
-                input = binding.circleTiltInput,
-                value = suggestedTiltDeg,
-                decimals = 0,
-                title = getString(R.string.circle_tilt_title),
-                suffix = "deg",
-            )
-        }
-        if (forcePoints || !binding.circleManualPointsSwitch.isChecked) {
-            syncSliderPresentation(
-                slider = binding.circlePointsSlider,
-                labelView = binding.circlePointsValueText,
-                input = binding.circlePointsInput,
-                value = suggestedPoints.toDouble(),
-                decimals = 0,
-                title = getString(R.string.circle_points_title),
-                suffix = null,
-            )
-        }
+        syncSliderPresentation(
+            slider = binding.circleRadiusSlider,
+            labelView = binding.circleRadiusValueText,
+            input = binding.circleRadiusInput,
+            value = suggestedRadiusM,
+            decimals = 0,
+            title = getString(R.string.circle_radius_title),
+            suffix = "m",
+        )
+        syncSliderPresentation(
+            slider = binding.circleTiltSlider,
+            labelView = binding.circleTiltValueText,
+            input = binding.circleTiltInput,
+            value = suggestedTiltDeg,
+            decimals = 0,
+            title = getString(R.string.circle_tilt_title),
+            suffix = "deg",
+        )
+        syncSliderPresentation(
+            slider = binding.circleOverlapSlider,
+            labelView = binding.circleOverlapValueText,
+            input = binding.circleOverlapInput,
+            value = suggestedOverlap,
+            decimals = 0,
+            title = getString(R.string.circle_overlap_title),
+            suffix = "%",
+        )
+        syncSliderPresentation(
+            slider = binding.circlePointsSlider,
+            labelView = binding.circlePointsValueText,
+            input = binding.circlePointsInput,
+            value = suggestedPoints.toDouble(),
+            decimals = 0,
+            title = getString(R.string.circle_points_title),
+            suffix = null,
+        )
     }
 
     private fun syncSliderPresentation(
@@ -673,7 +708,6 @@ class MainActivity : AppCompatActivity() {
         binding.closeMenuButton.setOnClickListener { setControlsOverlayVisible(false) }
         binding.saveDialogOverlay.setOnClickListener { setSaveDialogVisible(false) }
         binding.saveDialogCard.setOnClickListener { }
-        binding.saveDialogCloseButton.setOnClickListener { setSaveDialogVisible(false) }
         binding.saveDialogExportButton.setOnClickListener {
             flightPlanTitleDraft = binding.savePlanNameInput.text?.toString()?.trim().orEmpty()
             requestExportFromSaveDialog()
@@ -803,6 +837,15 @@ class MainActivity : AppCompatActivity() {
         terrainSnapshot = TerrainSnapshot.empty()
         preparedExport = null
         binding.exportPathText.text = getString(R.string.json_export_preparing)
+        bindSaveDialog(
+            mission = mission,
+            statusText = getString(R.string.save_dialog_preparing),
+            exportEnabled = false,
+            warningText = mission.warning,
+            warningSeverity = SaveDialogWarningSeverity.CAUTION,
+            resetTitle = true,
+        )
+        setSaveDialogVisible(true)
         renderProjectState()
         syncMapProject()
 
@@ -856,12 +899,23 @@ class MainActivity : AppCompatActivity() {
                     binding.exportPathText.text = getString(R.string.export_path_placeholder)
                     renderProjectState()
                     syncMapProject()
-                    openSaveDialog(readyExport.mission)
+                    openSaveDialog(readyExport.mission, resetTitle = false)
                 }.onFailure { error ->
                     preparedExport = null
                     terrainSnapshot = snapshot
                     terrainErrorMessage = error.message ?: error.javaClass.simpleName
                     binding.exportPathText.text = getString(R.string.export_path_placeholder)
+                    bindSaveDialog(
+                        mission = mission,
+                        statusText = getString(
+                            R.string.json_export_failed,
+                            error.message ?: error.javaClass.simpleName,
+                        ),
+                        exportEnabled = false,
+                        warningText = error.message ?: error.javaClass.simpleName,
+                        warningSeverity = SaveDialogWarningSeverity.BLOCKING,
+                        resetTitle = false,
+                    )
                     Toast.makeText(
                         this,
                         getString(R.string.json_export_failed, error.message ?: error.javaClass.simpleName),
@@ -874,13 +928,76 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun openSaveDialog(mission: PlannedMission) {
-        binding.savePlanSummaryText.text = buildSaveDialogSummary(mission)
-        binding.savePlanNameInput.setText(selectedPlanTitle(selectedCameraProfile()))
-        binding.savePlanNameInput.setSelection(binding.savePlanNameInput.text?.length ?: 0)
-        binding.saveDialogExportButton.isEnabled = true
-        binding.saveDialogExportButton.alpha = 1f
+    private fun openSaveDialog(
+        mission: PlannedMission,
+        resetTitle: Boolean = true,
+    ) {
+        bindSaveDialog(
+            mission = mission,
+            statusText = getString(R.string.save_dialog_ready),
+            exportEnabled = true,
+            warningText = mission.warning,
+            warningSeverity = SaveDialogWarningSeverity.CAUTION,
+            resetTitle = resetTitle,
+        )
         setSaveDialogVisible(true)
+    }
+
+    private fun bindSaveDialog(
+        mission: PlannedMission,
+        statusText: String,
+        exportEnabled: Boolean,
+        warningText: String?,
+        warningSeverity: SaveDialogWarningSeverity,
+        resetTitle: Boolean,
+    ) {
+        binding.savePlanSummaryText.text = buildSaveDialogSummary(mission)
+        binding.saveDialogStatusText.text = statusText
+        binding.saveDialogStatusText.setTextColor(
+            ContextCompat.getColor(
+                this,
+                if (warningSeverity == SaveDialogWarningSeverity.BLOCKING) {
+                    R.color.planner_error
+                } else {
+                    R.color.planner_muted
+                },
+            ),
+        )
+
+        if (resetTitle || binding.savePlanNameInput.text.isNullOrBlank()) {
+            binding.savePlanNameInput.setText(selectedPlanTitle(selectedCameraProfile()))
+            binding.savePlanNameInput.setSelection(binding.savePlanNameInput.text?.length ?: 0)
+        }
+
+        val cleanWarning = warningText?.trim().orEmpty()
+        binding.savePlanWarningText.isVisible = cleanWarning.isNotEmpty()
+        if (cleanWarning.isNotEmpty()) {
+            val blocking = warningSeverity == SaveDialogWarningSeverity.BLOCKING
+            binding.savePlanWarningText.setBackgroundResource(
+                if (blocking) R.drawable.bg_error_panel else R.drawable.bg_warning_panel,
+            )
+            binding.savePlanWarningText.setTextColor(
+                ContextCompat.getColor(
+                    this,
+                    if (blocking) R.color.planner_error else R.color.planner_warning,
+                ),
+            )
+            binding.savePlanWarningText.text = buildString {
+                appendLine(
+                    getString(
+                        if (blocking) {
+                            R.string.save_dialog_blocked_title
+                        } else {
+                            R.string.save_dialog_warning_title
+                        },
+                    ),
+                )
+                append(cleanWarning)
+            }
+        }
+
+        binding.saveDialogExportButton.isEnabled = exportEnabled
+        binding.saveDialogExportButton.alpha = if (exportEnabled) 1f else 0.45f
     }
 
     private fun setMenuTab(position: Int) {
@@ -901,12 +1018,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateCircleUiState() {
         syncCircleSuggestedControls()
-        binding.circleFocusHeightBlock.isVisible =
-            binding.circleFocusTargetSpinner.selectedItemPosition == 3
-        binding.circleRadiusBlock.isVisible = binding.circleLockRadiusSwitch.isChecked
-        binding.circleTiltBlock.isVisible = binding.circleLockAngleSwitch.isChecked
-        binding.circleOverlapBlock.isVisible = binding.circleManualOverlapSwitch.isChecked
-        binding.circlePointsBlock.isVisible = binding.circleManualPointsSwitch.isChecked
+        binding.circleFocusHeightBlock.isVisible = true
+        binding.circleRadiusBlock.isVisible = true
+        binding.circleTiltBlock.isVisible = true
+        binding.circleOverlapBlock.isVisible = true
+        binding.circlePointsBlock.isVisible = true
     }
 
     private fun confirmPolygonReset() {
@@ -1014,6 +1130,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun capturePlanningRequest(): PlanningRequest {
+        val customCircleGeometry = isCircleGeometryCustom()
         return PlanningRequest(
             polygon = currentPolygon.toList(),
             takeoffPoint = currentTakeoffPoint,
@@ -1026,10 +1143,10 @@ class MainActivity : AppCompatActivity() {
             gridAngleDeg = parseDouble(binding.gridAngleInput.text?.toString(), "Grid angle"),
             circleQuality = selectedCircleQuality(),
             circleFocusTarget = selectedCircleFocusTarget(),
-            circleLockRadius = binding.circleLockRadiusSwitch.isChecked,
-            circleLockAngle = binding.circleLockAngleSwitch.isChecked,
-            circleManualOverlap = binding.circleManualOverlapSwitch.isChecked,
-            circleManualPoints = binding.circleManualPointsSwitch.isChecked,
+            circleLockRadius = customCircleGeometry,
+            circleLockAngle = customCircleGeometry,
+            circleManualOverlap = true,
+            circleManualPoints = customCircleGeometry,
             circleMaxExtensionM = parseOptionalDouble(
                 binding.circleMaxExtensionInput.text?.toString(),
                 "Max extension",
@@ -1939,12 +2056,6 @@ class MainActivity : AppCompatActivity() {
                     getString(R.string.save_summary_home_missing)
                 },
             )
-            mission.warning?.takeIf { it.isNotBlank() }?.let { warning ->
-                appendLine()
-                appendLine()
-                appendLine(getString(R.string.save_dialog_warning_prefix))
-                append(warning)
-            }
         }
     }
 
@@ -2094,18 +2205,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun selectedCircleQuality(): CircleQuality {
-        return when (binding.circleOptimizationSpinner.selectedItemPosition) {
-            0 -> CircleQuality.FAST
-            2 -> CircleQuality.HIGH
+        return when (binding.circleOptimizationGroup.checkedButtonId) {
+            R.id.circleOptimizationFastButton -> CircleQuality.FAST
+            R.id.circleOptimizationHighButton -> CircleQuality.HIGH
             else -> CircleQuality.NORMAL
         }
     }
 
     private fun selectedCircleFocusTarget(): FocusTarget {
-        return when (binding.circleFocusTargetSpinner.selectedItemPosition) {
-            1 -> FocusTarget(FocusTargetMode.CANOPY_CENTER, 3.0)
-            2 -> FocusTarget(FocusTargetMode.OBJECT_CENTER, 1.5)
-            3 -> FocusTarget(
+        return when (binding.circleFocusTargetGroup.checkedButtonId) {
+            R.id.circleFocusCanopyButton -> FocusTarget(FocusTargetMode.CANOPY_CENTER, 3.0)
+            R.id.circleFocusObjectButton -> FocusTarget(FocusTargetMode.OBJECT_CENTER, 1.5)
+            R.id.circleFocusCustomButton -> FocusTarget(
                 FocusTargetMode.CUSTOM,
                 parseDouble(binding.circleFocusHeightInput.text?.toString(), "Custom focus height"),
             )

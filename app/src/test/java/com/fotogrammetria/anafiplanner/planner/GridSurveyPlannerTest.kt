@@ -94,4 +94,96 @@ class GridSurveyPlannerTest {
         assertTrue(firstLocal.x > 50.0)
         assertTrue(firstLocal.y > 40.0)
     }
+
+    @Test
+    fun keepsTransfersInsideConcavePolygon() {
+        val localPolygon = listOf(
+            Point2D(0.0, 0.0),
+            Point2D(80.0, 0.0),
+            Point2D(80.0, 30.0),
+            Point2D(30.0, 30.0),
+            Point2D(30.0, 80.0),
+            Point2D(0.0, 80.0),
+        )
+        val takeoffGeo = projection.toGeoPoint(Point2D(82.0, 2.0))
+
+        val plan = GridSurveyPlanner().generatePlan(
+            parameters = GridSurveyParameters(
+                polygon = localPolygon.map(projection::toGeoPoint),
+                altitudeM = 30.0,
+                frontOverlap = 0.80,
+                sideOverlap = 0.70,
+                cameraProfile = CameraProfiles.anafiJpegWide,
+                speedMode = SpeedMode.RECOMMENDED,
+                requestedSpeedMps = null,
+                gridAngleDeg = 0.0,
+                gimbalSettings = GimbalSettings(tiltDeg = 90.0, tiltSpeedDegSec = 30.0),
+            ),
+            title = "Concave Transfer Test",
+            takeoffPoint = TakeoffPoint(
+                lat = takeoffGeo.lat,
+                lon = takeoffGeo.lon,
+                isUserConfirmed = true,
+            ),
+        )
+
+        val localWaypoints = plan.waypoints.map {
+            projection.toLocalMeters(GeoPoint(it.latitude, it.longitude))
+        }
+        assertTrue("Concave transfer routing should add internal waypoint anchors", localWaypoints.size > 10)
+        localWaypoints.zipWithNext().forEachIndexed { index, (start, end) ->
+            assertTrue(
+                "Route segment $index leaves the concave polygon: $start -> $end",
+                segmentInsideOrOnPolygon(start, end, localPolygon),
+            )
+        }
+    }
+
+    private fun segmentInsideOrOnPolygon(
+        start: Point2D,
+        end: Point2D,
+        polygon: List<Point2D>,
+    ): Boolean {
+        return (0..40).all { step ->
+            val ratio = step / 40.0
+            val point = Point2D(
+                x = start.x + ((end.x - start.x) * ratio),
+                y = start.y + ((end.y - start.y) * ratio),
+            )
+            pointInsideOrOnPolygon(point, polygon)
+        }
+    }
+
+    private fun pointInsideOrOnPolygon(point: Point2D, polygon: List<Point2D>): Boolean {
+        polygon.forEachIndexed { index, start ->
+            val end = polygon[(index + 1) % polygon.size]
+            if (pointOnSegment(point, start, end)) {
+                return true
+            }
+        }
+
+        var inside = false
+        var previous = polygon.last()
+        polygon.forEach { current ->
+            if ((current.y > point.y) != (previous.y > point.y)) {
+                val intersectionX = current.x +
+                    ((point.y - current.y) * (previous.x - current.x) / (previous.y - current.y))
+                if (point.x < intersectionX) {
+                    inside = !inside
+                }
+            }
+            previous = current
+        }
+        return inside
+    }
+
+    private fun pointOnSegment(point: Point2D, start: Point2D, end: Point2D): Boolean {
+        val cross = ((end.x - start.x) * (point.y - start.y)) -
+            ((end.y - start.y) * (point.x - start.x))
+        return kotlin.math.abs(cross) <= 0.05 &&
+            point.x >= minOf(start.x, end.x) - 0.05 &&
+            point.x <= maxOf(start.x, end.x) + 0.05 &&
+            point.y >= minOf(start.y, end.y) - 0.05 &&
+            point.y <= maxOf(start.y, end.y) + 0.05
+    }
 }
